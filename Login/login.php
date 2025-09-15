@@ -1,6 +1,5 @@
 <?php
-// Page de connexion - Visuel uniquement pour le moment
-// La logique PHP (validation, sessions, BDD) sera ajoutée plus tard
+include '../Database/connection.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
