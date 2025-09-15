@@ -1,5 +1,47 @@
 <?php
+session_start();
 include '../Database/connection.php';
+
+// Traitement du formulaire de connexion
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    
+    if (empty($email) || empty($password)) {
+        $error = "Veuillez remplir tous les champs.";
+    } else {
+        try {
+            // Recherche de l'utilisateur par email
+            $stmt = $pdo->prepare("SELECT id, username, nom, prenom, email, password_hash, droit FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+            
+            if ($user && password_verify($password, $user['password_hash'])) {
+                // Connexion réussie
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['nom'] = $user['nom'];
+                $_SESSION['prenom'] = $user['prenom'];
+                $_SESSION['email'] = $user['email'];
+                $_SESSION['droit'] = $user['droit'];
+                
+                // Redirection vers la page d'accueil
+                header('Location: ../HomePage/index.php');
+                exit();
+            } else {
+                $error = "Email ou mot de passe incorrect.";
+            }
+        } catch (PDOException $e) {
+            $error = "Erreur de connexion à la base de données.";
+        }
+    }
+}
+
+// Si déjà connecté, rediriger vers la page d'accueil
+if (isset($_SESSION['user_id'])) {
+    header('Location: ../HomePage/index.php');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -23,6 +65,12 @@ include '../Database/connection.php';
         <div class="brand-sub">Connectez-vous pour continuer</div>
 
         <h1 class="title">Connexion</h1>
+
+        <?php if (isset($error)): ?>
+            <div class="error-message" style="background-color: #fee; color: #c33; padding: 10px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #fcc;">
+                <?php echo htmlspecialchars($error); ?>
+            </div>
+        <?php endif; ?>
 
         <form method="post" action="#" autocomplete="on" novalidate>
             <div class="form-row">
