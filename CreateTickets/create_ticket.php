@@ -1,81 +1,211 @@
 <?php
-// create_ticket.php
+session_start();
 include '../Database/connection.php';
 
-session_start();
-
-// Simuler un utilisateur connecté (à remplacer par ta logique d'authentification)
-$_SESSION['user_firstname'] = "Mehdi";
-$_SESSION['user_lastname']  = "Chahada";
-$_SESSION['user_email']     = "mehdi@example.com";
+// Vérifier si l'utilisateur est connecté
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../Login/login.php');
+    exit();
+}
 
 // Gestion soumission du formulaire
 $success = false;
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $title       = htmlspecialchars(trim($_POST["title"]));
-    $description = htmlspecialchars(trim($_POST["description"]));
-    $category    = htmlspecialchars(trim($_POST["category"]));
-    $type        = htmlspecialchars(trim($_POST["type"]));
+$error = false;
 
-    // Ici tu pourras insérer en base de données
-    $success = true;
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $title = trim($_POST["title"] ?? '');
+    $description = trim($_POST["description"] ?? '');
+    $category = trim($_POST["category"] ?? '');
+    $type = trim($_POST["type"] ?? '');
+    $priority = trim($_POST["priority"] ?? 'medium');
+
+    // Validation des données
+    if (empty($title) || empty($description) || empty($category) || empty($type)) {
+        $error = "Veuillez remplir tous les champs obligatoires.";
+    } elseif (strlen($title) < 4) {
+        $error = "Le titre doit contenir au moins 4 caractères.";
+    } elseif (strlen($description) < 10) {
+        $error = "La description doit contenir au moins 10 caractères.";
+    } else {
+        try {
+            // Créer la table tickets si elle n'existe pas
+            $createTableSQL = "CREATE TABLE IF NOT EXISTS `tickets` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `user_id` INT UNSIGNED NOT NULL,
+                `title` VARCHAR(255) NOT NULL,
+                `description` TEXT NOT NULL,
+                `category` ENUM('materiel', 'logiciel', 'reseau', 'autre') NOT NULL,
+                `type` ENUM('incident', 'demande') NOT NULL,
+                `priority` ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
+                `status` ENUM('open', 'in_progress', 'resolved', 'closed') DEFAULT 'open',
+                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+            
+            $pdo->exec($createTableSQL);
+
+            // Insérer le ticket en base
+            $stmt = $pdo->prepare("INSERT INTO tickets (user_id, title, description, category, type, priority) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$_SESSION['user_id'], $title, $description, $category, $type, $priority]);
+            
+            $success = true;
+            
+            // Optionnel : rediriger après succès
+            // header('Location: ../HomePage/index.php');
+            
+        } catch (PDOException $e) {
+            $error = "Erreur lors de la création du ticket. Veuillez réessayer.";
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Création d'un ticket</title>
-  <link rel="stylesheet" href="style.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Créer un ticket - RMS-Ticket</title>
+    <meta name="color-scheme" content="light dark">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="wrapper">
-    <div class="card">
-      <h2>Créer un ticket</h2>
-      <p class="subtitle">Remplissez les informations ci-dessous</p>
+    <div class="noise" aria-hidden="true"></div>
+    
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <div class="brand-logo">
+                    <span>R</span>
+                </div>
+                <span class="brand-text">RMS-Ticket</span>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="../HomePage/index.php" class="nav-link">Accueil</a>
+                <a href="create_ticket.php" class="nav-link active">Créer un ticket</a>
+                <?php if ($_SESSION['droit'] >= 1): ?>
+                    <a href="../AdminPanel/adminpanel.php" class="nav-link">Administration</a>
+                <?php endif; ?>
+                <a href="../HomePage/logout.php" class="nav-link">Déconnexion</a>
+            </div>
+        </div>
+    </nav>
 
-      <?php if ($success): ?>
-        <div class="alert success">✅ Ticket créé avec succès !</div>
-      <?php endif; ?>
+    <!-- Contenu principal -->
+    <main class="main-content">
+        <div class="form-container">
+            <div class="form-card">
+                <div class="form-header">
+                    <h1>Créer un ticket</h1>
+                    <p class="form-subtitle">Remplissez les informations ci-dessous pour créer votre ticket de support</p>
+                </div>
 
-      <form method="post" id="ticketForm">
-        <div class="field">
-          <label>Nom & Prénom</label>
-          <input type="text" value="<?= $_SESSION['user_firstname'].' '.$_SESSION['user_lastname'] ?>" disabled>
+                <?php if ($success): ?>
+                    <div class="alert success">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 12l2 2 4-4"/>
+                            <circle cx="12" cy="12" r="10"/>
+                        </svg>
+                        Ticket créé avec succès !
+                    </div>
+                <?php endif; ?>
+
+                <?php if ($error): ?>
+                    <div class="alert error">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="15" y1="9" x2="9" y2="15"/>
+                            <line x1="9" y1="9" x2="15" y2="15"/>
+                        </svg>
+                        <?php echo htmlspecialchars($error); ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="post" id="ticketForm" class="ticket-form">
+                    <div class="user-info">
+                        <div class="field">
+                            <label>Nom & Prénom</label>
+                            <input type="text" value="<?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>" disabled>
+                        </div>
+                        <div class="field">
+                            <label>Email</label>
+                            <input type="email" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" disabled>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="title">Titre du ticket <span class="required">*</span></label>
+                        <input type="text" id="title" name="title" required placeholder="Ex: Problème d'accès Wi-Fi" maxlength="255">
+                    </div>
+
+                    <div class="field">
+                        <label for="description">Description <span class="required">*</span></label>
+                        <textarea id="description" name="description" required placeholder="Décrivez le problème en détail..." maxlength="500"></textarea>
+                        <div class="char-counter" id="descCounter">0/500</div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="category">Catégorie <span class="required">*</span></label>
+                            <select id="category" name="category" required>
+                                <option value="">-- Choisir une catégorie --</option>
+                                <option value="materiel">🖥️ Matériel</option>
+                                <option value="logiciel">💻 Logiciel</option>
+                                <option value="reseau">🌐 Réseau</option>
+                                <option value="autre">❓ Autre</option>
+                            </select>
+                        </div>
+
+                        <div class="field">
+                            <label for="priority">Priorité</label>
+                            <select id="priority" name="priority">
+                                <option value="low">🟢 Faible</option>
+                                <option value="medium" selected>🟡 Moyenne</option>
+                                <option value="high">🟠 Élevée</option>
+                                <option value="urgent">🔴 Urgente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>Type <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="type" value="incident" required>
+                                <span class="radio-custom"></span>
+                                <div class="radio-content">
+                                    <strong>🚨 Incident</strong>
+                                    <small>Un problème qui empêche le fonctionnement normal</small>
+                                </div>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="type" value="demande" required>
+                                <span class="radio-custom"></span>
+                                <div class="radio-content">
+                                    <strong>📋 Demande</strong>
+                                    <small>Une demande de service ou d'assistance</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="submit-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Créer le ticket
+                    </button>
+                </form>
+            </div>
         </div>
-        <div class="field">
-          <label>Email</label>
-          <input type="email" value="<?= $_SESSION['user_email'] ?>" disabled>
-        </div>
-        <div class="field">
-          <label for="title">Intitulé</label>
-          <input type="text" id="title" name="title" required placeholder="Ex: Problème d'accès Wi-Fi">
-        </div>
-        <div class="field">
-          <label for="description">Description</label>
-          <textarea id="description" name="description" required placeholder="Décrivez le problème..."></textarea>
-          <div class="char-counter" id="descCounter">0/500</div>
-        </div>
-        <div class="field">
-          <label for="category">Catégorie</label>
-          <select id="category" name="category" required>
-            <option value="">-- Choisir une catégorie --</option>
-            <option value="materiel">Matériel</option>
-            <option value="logiciel">Logiciel</option>
-            <option value="reseau">Réseau</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Type</label>
-          <div class="radio-group">
-            <label><input type="radio" name="type" value="incident"> Incident</label>
-            <label><input type="radio" name="type" value="demande"> Demande</label>
-          </div>
-        </div>
-        <button type="submit" id="submitBtn">Créer le ticket</button>
-      </form>
-    </div>
-  </div>
-  <script src="app.js"></script>
+    </main>
+
+    <script src="app.js"></script>
 </body>
 </html>
