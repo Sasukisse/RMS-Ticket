@@ -17,7 +17,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $description = trim($_POST["description"] ?? '');
     $category = trim($_POST["category"] ?? '');
     $type = trim($_POST["type"] ?? '');
-    $priority = trim($_POST["priority"] ?? 'medium');
 
     // Validation des données
     if (empty($title) || empty($description) || empty($category) || empty($type)) {
@@ -46,9 +45,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             
             $pdo->exec($createTableSQL);
 
-            // Insérer le ticket en base
-            $stmt = $pdo->prepare("INSERT INTO tickets (user_id, title, description, category, type, priority) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->execute([$_SESSION['user_id'], $title, $description, $category, $type, $priority]);
+            // Insérer le ticket en base (priority laissé au défaut en base si non fourni)
+            $stmt = $pdo->prepare("INSERT INTO tickets (user_id, title, description, category, type) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$_SESSION['user_id'], $title, $description, $category, $type]);
             
             $success = true;
             
@@ -154,23 +153,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <div class="field">
                             <label for="category">Catégorie <span class="required">*</span></label>
                             <select id="category" name="category" required>
-                                <option value="">-- Choisir une catégorie --</option>
+                              <option value="">Choisir une catégorie</option>
                                 <option value="materiel">🖥️ Matériel</option>
-                                <option value="logiciel">💻 Logiciel</option>
+                                <option value="logiciel">💿 Logiciel</option>
                                 <option value="reseau">🌐 Réseau</option>
                                 <option value="autre">❓ Autre</option>
                             </select>
                         </div>
 
-                        <div class="field">
-                            <label for="priority">Priorité</label>
-                            <select id="priority" name="priority">
-                                <option value="low">🟢 Faible</option>
-                                <option value="medium" selected>🟡 Moyenne</option>
-                                <option value="high">🟠 Élevée</option>
-                                <option value="urgent">🔴 Urgente</option>
-                            </select>
-                        </div>
+                        <!-- Priorité supprimée de l'interface; la valeur par défaut en base est utilisée -->
                     </div>
 
                     <div class="field">
