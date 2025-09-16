@@ -245,6 +245,158 @@ input, textarea, select {
     transition: all 0.2s ease;
 }
 
+/* Amélioration visuelle des selects (catégorie / priorité) */
+.form-card select {
+    /* retirer l'apparence native pour pouvoir styler */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* espace à droite pour la flèche personnalisée */
+    padding-right: 44px;
+    height: 44px;
+    display: inline-block;
+    vertical-align: middle;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23a78bfa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 18px;
+    /* Renforcer contraste / lisibilité */
+    font-weight: 600;
+}
+
+.form-card select:hover {
+    border-color: rgba(255,255,255,0.28);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), var(--input-bg));
+}
+
+.form-card select:focus {
+    border-color: var(--primary);
+    background: rgba(99,102,241,0.06);
+    box-shadow: 0 0 0 6px rgba(99,102,241,0.06);
+}
+
+/* Options — support limité selon navigateur mais améliore la lecture là où c'est possible */
+.form-card select option {
+    background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    color: var(--text);
+    padding: 8px 12px;
+}
+
+/* Forcer une meilleure lisibilité de l'option sélectionnée */
+.form-card select option:checked {
+    background: linear-gradient(90deg, rgba(99,102,241,0.15), rgba(79,70,229,0.12));
+    color: var(--text);
+}
+
+/* Alternatif : wrapper pour icône si besoin (HTML non modifié ici) */
+.select-wrapper {
+    position: relative;
+}
+.select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+/* Custom select component (replaces native dropdown visually) */
+.custom-select {
+    position: relative;
+    user-select: none;
+    cursor: pointer;
+}
+.custom-select .selected {
+    padding: 12px 44px 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--input-border);
+    background: var(--input-bg);
+    color: var(--text);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+}
+.custom-select .selected::after {
+    content: '';
+    width: 16px;
+    height: 16px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat;
+    background-position: center;
+    margin-left: 8px;
+}
+.custom-select .selected .label {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+.custom-select .options {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(17,24,39,0.98));
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    z-index: 40;
+    max-height: 240px;
+    overflow: auto;
+    padding: 6px 6px;
+    display: none;
+}
+.custom-select.open .options { display: block; }
+.custom-select .option {
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--text);
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+.custom-select .option:hover {
+    background: rgba(99,102,241,0.08);
+}
+.custom-select .option.selected {
+    background: linear-gradient(90deg, rgba(99,102,241,0.12), rgba(79,70,229,0.06));
+}
+.custom-select .option .icon { opacity: 0.95; }
+
+/* Hide native select but keep it in the DOM and focusable for accessibility */
+.custom-hidden-select {
+    /* fully hide the native select to avoid duplicate controls */
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Hide the lower radio-style buttons for category/priorité if present (we use custom select now) */
+.radio-group.category, .radio-group.priority {
+    display: none !important;
+}
+
+/* Hide any native select that remained as direct child of .field to avoid duplicate visible controls */
+.field > select {
+    display: none !important;
+}
+
+/* Ensure custom-select fills the available width like the original control */
+.custom-select {
+    width: 100%;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+.custom-select .selected {
+    width: 100%;
+    min-height: 44px;
+}
+
 input::placeholder, textarea::placeholder {
     color: var(--muted);
 }

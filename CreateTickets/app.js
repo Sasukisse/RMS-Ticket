@@ -209,4 +209,68 @@ document.addEventListener("DOMContentLoaded", () => {
             userInfo.style.transform = 'translateY(0)';
         }, 300);
     }
+
+    // ---- Custom select initialization ----
+    function initCustomSelects() {
+        document.querySelectorAll('select').forEach(select => {
+            // only apply to our form selects (avoid select elements elsewhere)
+            if (!select.closest('.form-card')) return;
+
+            const wrapper = document.createElement('div');
+            wrapper.className = 'custom-select';
+
+            // move the native select into the wrapper and hide it visually
+            select.classList.add('custom-hidden-select');
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(select);
+
+            const selected = document.createElement('div');
+            selected.className = 'selected';
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'label';
+            labelSpan.textContent = select.options[select.selectedIndex]?.text || select.options[0]?.text || '';
+            selected.appendChild(labelSpan);
+            wrapper.appendChild(selected);
+
+            const optionsBox = document.createElement('div');
+            optionsBox.className = 'options';
+
+            Array.from(select.options).forEach((opt, idx) => {
+                const o = document.createElement('div');
+                o.className = 'option';
+                o.dataset.value = opt.value;
+                o.innerHTML = `<span class="label">${opt.text}</span>`;
+                if (opt.disabled) o.classList.add('disabled');
+                if (opt.selected) o.classList.add('selected');
+                o.addEventListener('click', () => {
+                    // update native select value and displayed label
+                    select.value = opt.value;
+                    selected.querySelector('.label').textContent = opt.text;
+                    optionsBox.querySelectorAll('.option').forEach(el => el.classList.remove('selected'));
+                    o.classList.add('selected');
+                    wrapper.classList.remove('open');
+                    // trigger change on original select for validation listeners
+                    const event = new Event('change', { bubbles: true });
+                    select.dispatchEvent(event);
+                });
+                optionsBox.appendChild(o);
+            });
+
+            wrapper.appendChild(optionsBox);
+
+            selected.addEventListener('click', (e) => {
+                e.stopPropagation();
+                // close any other open
+                document.querySelectorAll('.custom-select.open').forEach(el => { if (el !== wrapper) el.classList.remove('open'); });
+                wrapper.classList.toggle('open');
+            });
+        });
+
+        // close on outside click
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.custom-select.open').forEach(el => el.classList.remove('open'));
+        });
+    }
+
+    initCustomSelects();
 });
