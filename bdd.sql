@@ -43,3 +43,19 @@ CREATE TABLE IF NOT EXISTS `tickets` (
   INDEX `idx_category` (`category`),
   INDEX `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table pour les logs d'administration
+CREATE TABLE IF NOT EXISTS `admin_logs` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` INT UNSIGNED,
+  `action` VARCHAR(100) NOT NULL,
+  `details` TEXT,
+  `ip_address` VARCHAR(45),
+  `user_agent` TEXT,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE SET NULL,
+  INDEX `idx_user_id` (`user_id`),
+  INDEX `idx_action` (`action`),
+  INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
