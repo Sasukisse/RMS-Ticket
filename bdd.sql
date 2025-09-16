@@ -59,3 +59,19 @@ CREATE TABLE IF NOT EXISTS `admin_logs` (
   INDEX `idx_action` (`action`),
   INDEX `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Table pour les réponses aux tickets
+CREATE TABLE IF NOT EXISTS `ticket_responses` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ticket_id` INT UNSIGNED NOT NULL,
+  `user_id` INT UNSIGNED NOT NULL,
+  `response_text` TEXT NOT NULL,
+  `is_admin_response` BOOLEAN DEFAULT FALSE,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`ticket_id`) REFERENCES `tickets`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+  INDEX `idx_ticket_id` (`ticket_id`),
+  INDEX `idx_user_id` (`user_id`),
+  INDEX `idx_created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

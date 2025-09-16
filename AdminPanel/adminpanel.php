@@ -137,6 +137,22 @@ switch ($action) {
         page_layout('Gestion des tickets', tickets_view($tickets, $filters));
         break;
         
+    case 'ticket_detail':
+        $ticket_id = intval($_GET['id'] ?? 0);
+        if ($method === 'POST') {
+            $op = $_POST['op'] ?? '';
+            if ($op === 'add_response') ticket_add_response($ticket_id);
+            if ($op === 'update_status') ticket_update_status_direct($ticket_id);
+            header("Location: ?action=ticket_detail&id=$ticket_id"); exit;
+        }
+        $ticket = ticket_get_detail($ticket_id);
+        if (!$ticket) {
+            header('Location: ?action=tickets'); exit;
+        }
+        $responses = ticket_get_responses($ticket_id);
+        page_layout('Détail du ticket #' . $ticket_id, ticket_detail_view($ticket, $responses));
+        break;
+        
     case 'users':
         if ($method === 'POST') {
             $op = $_POST['op'] ?? '';
@@ -309,6 +325,93 @@ function tickets_delete(): void {
     $stmt->execute();
     
     log_admin_action('ticket_delete', "Ticket ID: $ticket_id supprimé");
+}
+
+function ticket_get_detail($ticket_id): ?array {
+    $conn = getConnection();
+    
+    $stmt = $conn->prepare("
+        SELECT t.*, u.nom, u.prenom, u.email, u.numero_telephone
+        FROM tickets t 
+        JOIN users u ON t.user_id = u.id 
+        WHERE t.id = ?
+    ");
+    $stmt->bind_param('i', $ticket_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    return $result->fetch_assoc() ?: null;
+}
+
+function ticket_get_responses($ticket_id): array {
+    $conn = getConnection();
+    
+    // Créer la table des réponses si elle n'existe pas (sans contraintes FK pour éviter les erreurs)
+    $conn->query("
+        CREATE TABLE IF NOT EXISTS ticket_responses (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ticket_id INT NOT NULL,
+            user_id INT NOT NULL,
+            response_text TEXT NOT NULL,
+            is_admin_response BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_ticket_id (ticket_id),
+            INDEX idx_user_id (user_id)
+        )
+    ");
+    
+    // Vérifier si la table existe et a des données
+    $result = $conn->query("SHOW TABLES LIKE 'ticket_responses'");
+    if ($result->num_rows === 0) {
+        return [];
+    }
+    
+    $stmt = $conn->prepare("
+        SELECT tr.*, u.nom, u.prenom, u.droit
+        FROM ticket_responses tr
+        LEFT JOIN users u ON tr.user_id = u.id
+        WHERE tr.ticket_id = ?
+        ORDER BY tr.created_at ASC
+    ");
+    $stmt->bind_param('i', $ticket_id);
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+function ticket_add_response($ticket_id): void {
+    $conn = getConnection();
+    $response_text = trim($_POST['response_text'] ?? '');
+    
+    if (empty($response_text)) {
+        return;
+    }
+    
+    $user_id = $_SESSION['user_id'];
+    $is_admin = current_user()['droit'] >= 1;
+    
+    $stmt = $conn->prepare('INSERT INTO ticket_responses (ticket_id, user_id, response_text, is_admin_response) VALUES (?, ?, ?, ?)');
+    $stmt->bind_param('iisi', $ticket_id, $user_id, $response_text, $is_admin);
+    $stmt->execute();
+    
+    // Mettre à jour le statut du ticket si c'est une réponse admin
+    if ($is_admin) {
+        $stmt = $conn->prepare('UPDATE tickets SET status = "in_progress", updated_at = NOW() WHERE id = ?');
+        $stmt->bind_param('i', $ticket_id);
+        $stmt->execute();
+    }
+    
+    log_admin_action('ticket_response_add', "Réponse ajoutée au ticket ID: $ticket_id");
+}
+
+function ticket_update_status_direct($ticket_id): void {
+    $conn = getConnection();
+    $new_status = $_POST['status'] ?? '';
+    
+    $stmt = $conn->prepare('UPDATE tickets SET status = ?, updated_at = NOW() WHERE id = ?');
+    $stmt->bind_param('si', $new_status, $ticket_id);
+    $stmt->execute();
+    
+    log_admin_action('ticket_status_update', "Ticket ID: $ticket_id, Nouveau statut: $new_status");
 }
 
 // =========================
@@ -530,8 +633,8 @@ function page_layout(string $title, string $content, array $opts = []): void {
 <!doctype html>
 <html lang="fr">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e(APP_NAME . ' · ' . $title) ?></title>
     <link rel="stylesheet" href="adminpanel.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -588,23 +691,23 @@ function page_layout(string $title, string $content, array $opts = []): void {
                 </div>
             </div>
         </div>
-    </nav>
-    <?php endif; ?>
+  </nav>
+<?php endif; ?>
     
     <main class="main-content">
-        <div class="container">
+<div class="container">
             <div class="page-header">
                 <h1><?= e($title) ?></h1>
             </div>
-            <?= $content ?>
-        </div>
+  <?= $content ?>
+</div>
     </main>
     
     <footer class="footer">
         <div class="container">
             <small>© <?= date('Y') ?> — <?= e(APP_NAME) ?> • Panneau d'administration</small>
         </div>
-    </footer>
+</footer>
 </body>
 </html>
 <?php }
@@ -774,7 +877,7 @@ function tickets_view($tickets, $filters): string {
                         </thead>
                         <tbody>
                             <?php foreach ($tickets as $ticket): ?>
-                            <tr>
+                            <tr class="ticket-row" onclick="window.location.href='?action=ticket_detail&id=<?= $ticket['id'] ?>'" style="cursor: pointer;">
                                 <td>#<?= $ticket['id'] ?></td>
                                 <td>
                                     <div class="ticket-title-cell">
@@ -787,7 +890,7 @@ function tickets_view($tickets, $filters): string {
                                 <td><span class="badge priority-<?= $ticket['priority'] ?>"><?= ucfirst($ticket['priority']) ?></span></td>
                                 <td><span class="badge status-<?= $ticket['status'] ?>"><?= ucfirst(str_replace('_', ' ', $ticket['status'])) ?></span></td>
                                 <td><?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?></td>
-                                <td>
+                                <td onclick="event.stopPropagation()">
                                     <div class="action-buttons">
                                         <form method="POST" style="display: inline;">
                                             <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
@@ -821,6 +924,10 @@ function tickets_view($tickets, $filters): string {
             <?php endif; ?>
         </div>
     </div>
+<?php
+    return ob_get_clean();
+}
+
 // =========================
 // VUES - USERS
 // =========================
@@ -1290,6 +1397,150 @@ function logs_view($logs, $filters): string {
                     </table>
                 </div>
             <?php endif; ?>
+        </div>
+    </div>
+<?php
+    return ob_get_clean();
+}
+
+// =========================
+// VUES - TICKET DETAIL
+// =========================
+function ticket_detail_view($ticket, $responses): string {
+    ob_start();
+    $current_user = current_user();
+?>
+    <div class="ticket-detail-container">
+        <!-- Informations du ticket -->
+        <div class="card ticket-info-card">
+            <div class="card-header">
+                <div class="ticket-header-info">
+                    <h2><?= e($ticket['title']) ?></h2>
+                    <div class="ticket-meta">
+                        <span class="badge priority-<?= $ticket['priority'] ?>"><?= ucfirst($ticket['priority']) ?></span>
+                        <span class="badge status-<?= $ticket['status'] ?>"><?= ucfirst(str_replace('_', ' ', $ticket['status'])) ?></span>
+                        <span class="badge category-<?= $ticket['category'] ?>"><?= ucfirst($ticket['category']) ?></span>
+                    </div>
+                </div>
+                <div class="ticket-actions">
+                    <form method="POST" style="display: inline;">
+                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                        <input type="hidden" name="op" value="update_status">
+                        <select name="status" onchange="this.form.submit()" class="input">
+                            <option value="open" <?= $ticket['status'] === 'open' ? 'selected' : '' ?>>Ouvert</option>
+                            <option value="in_progress" <?= $ticket['status'] === 'in_progress' ? 'selected' : '' ?>>En cours</option>
+                            <option value="resolved" <?= $ticket['status'] === 'resolved' ? 'selected' : '' ?>>Résolu</option>
+                            <option value="closed" <?= $ticket['status'] === 'closed' ? 'selected' : '' ?>>Fermé</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="card-content">
+                <div class="ticket-info-grid">
+                    <div class="info-section">
+                        <h4>Informations du ticket</h4>
+                        <div class="info-item">
+                            <label>ID :</label>
+                            <span>#<?= $ticket['id'] ?></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Type :</label>
+                            <span><?= ucfirst($ticket['type']) ?></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Créé le :</label>
+                            <span><?= date('d/m/Y à H:i', strtotime($ticket['created_at'])) ?></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Mis à jour :</label>
+                            <span><?= date('d/m/Y à H:i', strtotime($ticket['updated_at'])) ?></span>
+                        </div>
+                    </div>
+                    
+                    <div class="info-section">
+                        <h4>Informations utilisateur</h4>
+                        <div class="info-item">
+                            <label>Nom :</label>
+                            <span><?= e($ticket['prenom'] . ' ' . $ticket['nom']) ?></span>
+                        </div>
+                        <div class="info-item">
+                            <label>Email :</label>
+                            <span><?= e($ticket['email']) ?></span>
+                        </div>
+                        <?php if ($ticket['numero_telephone']): ?>
+                        <div class="info-item">
+                            <label>Téléphone :</label>
+                            <span><?= e($ticket['numero_telephone']) ?></span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                
+                <div class="ticket-description-section">
+                    <h4>Description</h4>
+                    <div class="ticket-description-content">
+                        <?= nl2br(e($ticket['description'])) ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Réponses existantes -->
+        <?php if (!empty($responses)): ?>
+        <div class="card responses-card">
+            <div class="card-header">
+                <h3><i class="fas fa-comments"></i> Historique des réponses (<?= count($responses) ?>)</h3>
+            </div>
+            <div class="card-content">
+                <div class="responses-list">
+                    <?php foreach ($responses as $response): ?>
+                    <div class="response-item <?= $response['is_admin_response'] ? 'admin-response' : 'user-response' ?>">
+                        <div class="response-header">
+                            <div class="response-author">
+                                <strong><?= e($response['prenom'] . ' ' . $response['nom']) ?></strong>
+                                <?php if ($response['is_admin_response']): ?>
+                                    <span class="badge badge-info">Admin</span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="response-date">
+                                <?= date('d/m/Y à H:i', strtotime($response['created_at'])) ?>
+                            </div>
+                        </div>
+                        <div class="response-content">
+                            <?= nl2br(e($response['response_text'])) ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+        
+        <!-- Formulaire de réponse -->
+        <div class="card response-form-card">
+            <div class="card-header">
+                <h3><i class="fas fa-reply"></i> Ajouter une réponse</h3>
+            </div>
+            <div class="card-content">
+                <form method="POST">
+                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="op" value="add_response">
+                    
+                    <div class="form-group">
+                        <label for="response_text">Votre réponse :</label>
+                        <textarea name="response_text" id="response_text" rows="6" class="input" placeholder="Tapez votre réponse ici..." required></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Envoyer la réponse
+                        </button>
+                        <a href="?action=tickets" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Retour à la liste
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 <?php

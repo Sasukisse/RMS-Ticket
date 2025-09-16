@@ -386,6 +386,15 @@ body {
     background: rgba(255,255,255,0.03);
 }
 
+.ticket-row {
+    transition: all 0.2s ease;
+}
+
+.ticket-row:hover {
+    background: rgba(99,102,241,0.1) !important;
+    transform: translateX(4px);
+}
+
 /* Badges */
 .badge {
     display: inline-flex;
@@ -683,6 +692,171 @@ body {
     50% { opacity: 0.7; }
 }
 
+/* Ticket Detail Styles */
+.ticket-title-link {
+    color: var(--primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.ticket-title-link:hover {
+    color: var(--primary-strong);
+    text-decoration: underline;
+}
+
+.ticket-detail-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.ticket-info-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.ticket-header-info h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    color: var(--text);
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.ticket-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.ticket-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.info-section h4 {
+    color: var(--text);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--glass-stroke);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item label {
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0;
+}
+
+.info-item span {
+    color: var(--text);
+}
+
+.ticket-description-section {
+    margin-top: 2rem;
+}
+
+.ticket-description-section h4 {
+    color: var(--text);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--glass-stroke);
+}
+
+.ticket-description-content {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: var(--radius-sm);
+    padding: 1.5rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.responses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.response-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: var(--radius-sm);
+    padding: 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.response-item:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.response-item.admin-response {
+    border-left: 4px solid var(--primary);
+    background: rgba(99,102,241,0.05);
+}
+
+.response-item.user-response {
+    border-left: 4px solid var(--success);
+    background: rgba(34,197,94,0.05);
+}
+
+.response-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.response-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.response-date {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.response-content {
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.response-form-card textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .nav-container {
@@ -716,5 +890,28 @@ body {
     
     .form-grid {
         grid-template-columns: 1fr;
+    }
+    
+    .ticket-info-card .card-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .ticket-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .response-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
