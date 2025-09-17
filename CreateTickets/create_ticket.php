@@ -78,12 +78,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <!-- Navbar -->
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
+            <a href="../HomePage/index.php" class="nav-brand" style="text-decoration: none; color: inherit;">
                 <div class="brand-logo">
                     <span>R</span>
                 </div>
                 <span class="brand-text">RMS-Ticket</span>
-            </div>
+            </a>
             
             <div class="nav-menu">
                 <a href="../HomePage/index.php" class="nav-link">Accueil</a>

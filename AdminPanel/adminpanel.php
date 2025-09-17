@@ -646,12 +646,12 @@ function page_layout(string $title, string $content, array $opts = []): void {
     <?php if (!($opts['hide_nav'] ?? false)): ?>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-brand">
+            <a href="../HomePage/index.php" class="nav-brand" style="text-decoration: none; color: inherit;">
                 <div class="brand-logo">
                     <span>🛡️</span>
                 </div>
                 <div class="brand-text"><?= e(APP_NAME) ?></div>
-            </div>
+            </a>
             
             <div class="nav-menu">
                 <a href="?action=dashboard" class="nav-link <?= $current_action === 'dashboard' ? 'active' : '' ?>">

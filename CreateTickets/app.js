@@ -49,6 +49,10 @@ document.addEventListener("DOMContentLoaded", () => {
         el.addEventListener("blur", validate);
     });
 
+    // S'assurer que la sélection de la catégorie relance bien la validation
+    // (les <select> déclenchent un événement 'change', pas toujours 'input')
+    category.addEventListener("change", validate);
+
     typeInputs.forEach(input => {
         input.addEventListener("change", validate);
     });
