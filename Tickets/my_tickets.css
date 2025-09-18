@@ -1,24 +1,109 @@
 /* Tickets/my_tickets.css — copie du design CreateTickets + styles de tableau */
-@import url("../CreateTickets/style.css"); /* Option 1: réutiliser (simple) */
-/* Si tu préfères des fichiers totalement séparés sans @import, copie/colle tout le contenu
-   de CreateTickets/style.css ici, puis ajoute seulement ce bloc tableau. */
+@import url("../CreateTickets/style.css"); /* On réutilise le design commun */
 
-/* TABLE + BADGES (spécifiques à la liste) */
+/* ====== OVERRIDES LAYOUT (élargir la carte / éviter le scroll horizontal) ====== */
+.form-container{
+  width: 100%;
+  max-width: 1100px;            /* ✅ plus large qu'avant (700px) */
+}
+
+.form-card{
+  padding: 2.25rem;             /* un peu plus d'air */
+  overflow-x: visible;          /* évite d'ajouter un scroll horizontal */
+}
+
+/* Wrapper du tableau : pas de scroll en desktop, autorisé en mobile si nécessaire */
 .table-wrapper{
-  overflow:auto;border-radius:12px;border:1px solid rgba(255,255,255,.10);
-  background:rgba(255,255,255,.03)
+  width: 100%;
+  overflow-x: visible;          /* ✅ pas de barre en largeur suffisante */
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.03);
+  margin-top: 1rem;
 }
-.tickets-table{width:100%;border-collapse:collapse;font-size:.9rem;color:var(--text)}
+
+/* Le tableau occupe toute la largeur disponible */
+.tickets-table{
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;           /* colonnes flexibles */
+  font-size: .9rem;
+  color: var(--text);
+}
+
 .tickets-table thead th{
-  text-align:left;padding:12px 16px;background:rgba(255,255,255,.06);position:sticky;top:0
+  text-align: left;
+  padding: 12px 16px;
+  background: rgba(255,255,255,.06);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
 }
-.tickets-table tbody td{padding:12px 16px;border-top:1px solid rgba(255,255,255,.08)}
-.tickets-table tbody tr:hover{background:rgba(255,255,255,.04)}
-.tickets-table td.title{font-weight:600}
+
+.tickets-table tbody td{
+  padding: 12px 16px;
+  border-top: 1px solid rgba(255,255,255,.08);
+  vertical-align: middle;
+}
+
+.tickets-table tbody tr:hover{
+  background: rgba(255,255,255,.04);
+}
+
+.tickets-table td.title{
+  font-weight: 600;
+}
+
+/* Colonnes un minimum de largeur pour éviter les cassures trop serrées */
+.tickets-table th:nth-child(1),
+.tickets-table td:nth-child(1){ min-width: 40px; }
+.tickets-table th:nth-child(2),
+.tickets-table td:nth-child(2){ min-width: 160px; }
+.tickets-table th:nth-child(3),
+.tickets-table td:nth-child(3){ min-width: 120px; }
+.tickets-table th:nth-child(4),
+.tickets-table td:nth-child(4){ min-width: 110px; }
+.tickets-table th:nth-child(5),
+.tickets-table td:nth-child(5){ min-width: 110px; }
+.tickets-table th:nth-child(6),
+.tickets-table td:nth-child(6){ min-width: 140px; }
+.tickets-table th:nth-child(7),
+.tickets-table td:nth-child(7){ min-width: 90px; text-align: right; }
 
 /* Badges de statut */
-.badge{display:inline-block;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:600;border:1px solid rgba(255,255,255,.12)}
-.badge-open{background:rgba(99,102,241,.15);color:#aab3ff;border-color:rgba(99,102,241,.35)}
-.badge-in_progress{background:rgba(245,158,11,.15);color:#facc15;border-color:rgba(245,158,11,.35)}
-.badge-resolved{background:rgba(16,185,129,.15);color:#34d399;border-color:rgba(16,185,129,.35)}
-.badge-closed{background:rgba(148,163,184,.15);color:#cbd5e1;border-color:rgba(148,163,184,.35)}
+.badge{
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,.12)
+}
+.badge-open{        background: rgba(99,102,241,.15);  color: #aab3ff;   border-color: rgba(99,102,241,.35) }
+.badge-in_progress{ background: rgba(245,158,11,.15);  color: #facc15;   border-color: rgba(245,158,11,.35) }
+.badge-resolved{    background: rgba(16,185,129,.15);  color: #34d399;   border-color: rgba(16,185,129,.35) }
+.badge-closed{      background: rgba(148,163,184,.15); color: #cbd5e1;   border-color: rgba(148,163,184,.35) }
+
+/* Bouton “Voir” compact */
+.btn.small{
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+  color: #fff;
+  font-weight: 600;
+  font-size: .9rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(79,70,229,0.35);
+  transition: .2s;
+}
+.btn.small:hover{ filter: brightness(1.05); transform: translateY(-1px); }
+
+/* ====== Responsive : en petit écran, on permet le scroll horizontal si nécessaire ====== */
+@media (max-width: 900px){
+  .form-container{ max-width: 100%; }
+  .table-wrapper{ overflow-x: auto; }   /* 👈 seulement en mobile/tablette */
+  .tickets-table th, .tickets-table td{ white-space: nowrap; }
+}

@@ -27,36 +27,36 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "La description doit contenir au moins 10 caractères.";
     } else {
         try {
-            // Créer la table tickets si elle n'existe pas
-            $createTableSQL = "CREATE TABLE IF NOT EXISTS `tickets` (
-                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
-                `user_id` INT UNSIGNED NOT NULL,
-                `title` VARCHAR(255) NOT NULL,
-                `description` TEXT NOT NULL,
-                `category` ENUM('materiel', 'logiciel', 'reseau', 'autre') NOT NULL,
-                `type` ENUM('incident', 'demande') NOT NULL,
-                `priority` ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
-                `status` ENUM('open', 'in_progress', 'resolved', 'closed') DEFAULT 'open',
-                `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                PRIMARY KEY (`id`),
-                FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
-            
-            $pdo->exec($createTableSQL);
+    // Créer la table tickets si elle n'existe pas
+    $createTableSQL = "CREATE TABLE IF NOT EXISTS `tickets` (
+        `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+        `user_id` INT UNSIGNED NOT NULL,
+        `title` VARCHAR(255) NOT NULL,
+        `description` TEXT NOT NULL,
+        `category` ENUM('materiel', 'logiciel', 'reseau', 'autre') NOT NULL,
+        `type` ENUM('incident', 'demande') NOT NULL,
+        `priority` ENUM('low', 'medium', 'high', 'urgent') DEFAULT 'medium',
+        `status` ENUM('open', 'in_progress', 'resolved', 'closed') DEFAULT 'open',
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci";
+    
+    $pdo->exec($createTableSQL);
 
-            // Insérer le ticket en base (priority laissé au défaut en base si non fourni)
-            $stmt = $pdo->prepare("INSERT INTO tickets (user_id, title, description, category, type) VALUES (?, ?, ?, ?, ?)");
-            $stmt->execute([$_SESSION['user_id'], $title, $description, $category, $type]);
-            
-            $success = true;
-            
-            // Optionnel : rediriger après succès
-            // header('Location: ../HomePage/index.php');
-            
-        } catch (PDOException $e) {
-            $error = "Erreur lors de la création du ticket. Veuillez réessayer.";
-        }
+    // Insérer le ticket
+    $stmt = $pdo->prepare("INSERT INTO tickets (user_id, title, description, category, type) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$_SESSION['user_id'], $title, $description, $category, $type]);
+
+    // ✅ Redirection directe
+    header('Location: ../Tickets/my_tickets.php');
+    exit();
+
+} catch (PDOException $e) {
+    $error = "Erreur lors de la création du ticket. Veuillez réessayer.";
+}
+
     }
 }
 ?>
@@ -153,12 +153,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         <div class="field">
                             <label for="category">Catégorie <span class="required">*</span></label>
                             <select id="category" name="category" required>
-                              <option value="">Choisir une catégorie</option>
-                                <option value="materiel">🖥️ Matériel</option>
-                                <option value="logiciel">💿 Logiciel</option>
-                                <option value="reseau">🌐 Réseau</option>
-                                <option value="autre">❓ Autre</option>
-                            </select>
+  <option value="" disabled selected hidden>Choisir une catégorie</option>
+  <option value="materiel">🖥️ Matériel</option>
+  <option value="logiciel">💿 Logiciel</option>
+  <option value="reseau">🌐 Réseau</option>
+  <option value="autre">❓ Autre</option>
+</select>
+
                         </div>
 
                         <!-- Priorité supprimée de l'interface; la valeur par défaut en base est utilisée -->
