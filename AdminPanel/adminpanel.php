@@ -860,19 +860,22 @@ function dashboard_view($stats): string {
                     <?php else: ?>
                         <div class="ticket-list">
                             <?php foreach ($stats['recent_tickets'] as $ticket): ?>
-                            <div class="ticket-item">
-                                <div class="ticket-info">
-                                    <div class="ticket-title"><?= e($ticket['title']) ?></div>
-                                    <div class="ticket-meta">
-                                        Par <?= e($ticket['prenom'] . ' ' . $ticket['nom']) ?> • 
-                                        <?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?>
+                                <div class="ticket-item">
+                                    <div class="ticket-info">
+                                        <div class="ticket-title"><?= e($ticket['title']) ?></div>
+                                        <div class="ticket-meta">
+                                            Par <?= e($ticket['prenom'] . ' ' . $ticket['nom']) ?> • 
+                                            <?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?>
+                                        </div>
+                                    </div>
+                                    <div class="ticket-badges">
+                                        <span class="badge priority-<?= $ticket['priority'] ?>"><?= ucfirst($ticket['priority']) ?></span>
+                                        <span class="badge status-<?= $ticket['status'] ?>"><?= ucfirst($ticket['status']) ?></span>
+                                    </div>
+                                    <div class="ticket-action">
+                                        <a href="?action=ticket_detail&id=<?= $ticket['id'] ?>" class="btn btn-sm btn-secondary">Voir</a>
                                     </div>
                                 </div>
-                                <div class="ticket-badges">
-                                    <span class="badge priority-<?= $ticket['priority'] ?>"><?= ucfirst($ticket['priority']) ?></span>
-                                    <span class="badge status-<?= $ticket['status'] ?>"><?= ucfirst($ticket['status']) ?></span>
-                                </div>
-                            </div>
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>

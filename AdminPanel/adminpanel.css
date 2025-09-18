@@ -793,6 +793,34 @@ select option {
     transition: all 0.2s ease;
 }
 
+/* Recent tickets list layout */
+.ticket-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.ticket-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.02);
+}
+.ticket-item .ticket-info {
+    flex: 1 1 auto;
+}
+.ticket-item .ticket-badges {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.ticket-item .ticket-action {
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
 .ticket-title-link:hover {
     color: var(--primary-strong);
     text-decoration: underline;
