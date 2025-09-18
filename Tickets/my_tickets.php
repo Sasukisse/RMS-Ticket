@@ -123,28 +123,28 @@ function status_badge($s) {
       </div>
     </div>
   </main>
+  <script>
+    (function(){
+      const badge = document.getElementById('tickets-badge');
+      if (!badge) return;
+      async function fetchUnread(){
+        try{
+          const res = await fetch('notifications_api.php');
+          if (!res.ok) return;
+          const json = await res.json();
+          const n = parseInt(json.unread || 0, 10);
+          if (n > 0) {
+            badge.style.display = 'inline-block';
+            badge.textContent = n;
+          } else {
+            badge.style.display = 'none';
+          }
+        }catch(e){console.error(e)}
+      }
+
+      fetchUnread();
+      setInterval(fetchUnread, 10000);
+    })();
+  </script>
 </body>
 </html>
-<script>
-  (function(){
-    const badge = document.getElementById('tickets-badge');
-    if (!badge) return;
-    async function fetchUnread(){
-      try{
-        const res = await fetch('notifications_api.php');
-        if (!res.ok) return;
-        const json = await res.json();
-        const n = parseInt(json.unread || 0, 10);
-        if (n > 0) {
-          badge.style.display = 'inline-block';
-          badge.textContent = n;
-        } else {
-          badge.style.display = 'none';
-        }
-      }catch(e){console.error(e)}
-    }
-
-    fetchUnread();
-    setInterval(fetchUnread, 10000);
-  })();
-</script>
