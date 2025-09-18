@@ -11,6 +11,8 @@ function initializeAdminPanel() {
     initializeConfirmations();
     initializeFilters();
     initializeAnimations();
+    // Ensure custom selects are enhanced immediately after initialization
+    try { enhanceCustomSelects(); } catch (e) { console && console.error && console.error('enhanceCustomSelects', e); }
     console.log('🛡️ Panneau d\'administration initialisé');
 }
 
@@ -245,9 +247,34 @@ function enhanceCustomSelects() {
         if (original.dataset.enhanced === '1') return;
         original.dataset.enhanced = '1';
 
-        // Wrap already exists in markup (select-wrapper), we will attach an overlay
-        const wrapper = original.closest('.select-wrapper') || original.parentElement;
-        wrapper.style.position = 'relative';
+    // Wrap already exists in markup (select-wrapper), we will attach an overlay
+    const wrapper = original.closest('.select-wrapper') || original.parentElement;
+    wrapper.style.position = 'relative';
+
+    // Create a trigger button to replace the native visual of the select
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'select-trigger btn btn-secondary btn-sm';
+    trigger.style.display = 'inline-flex';
+    trigger.style.alignItems = 'center';
+    trigger.style.gap = '8px';
+    trigger.style.padding = '6px 10px';
+    trigger.style.fontSize = '13px';
+    trigger.style.cursor = 'pointer';
+    trigger.textContent = original.options[original.selectedIndex] ? original.options[original.selectedIndex].text : '';
+    // make trigger focusable for keyboard interaction
+    trigger.setAttribute('tabindex', '0');
+    trigger.setAttribute('aria-haspopup', 'listbox');
+    trigger.setAttribute('aria-expanded', 'false');
+
+    // Hide native select visually but keep it in the DOM for forms
+    original.style.position = 'absolute';
+    original.style.opacity = '0';
+    original.style.pointerEvents = 'none';
+    original.style.zIndex = '0';
+
+    // Insert trigger before the original select
+    wrapper.insertBefore(trigger, original);
 
         // Create overlay list
         const overlay = document.createElement('div');
@@ -260,7 +287,6 @@ function enhanceCustomSelects() {
         overlay.style.border = '1px solid rgba(255,255,255,0.06)';
         overlay.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6)';
         overlay.style.zIndex = '3000';
-        overlay.style.display = 'none';
         overlay.style.maxHeight = '220px';
         overlay.style.overflow = 'auto';
         overlay.style.borderRadius = '8px';
@@ -286,26 +312,110 @@ function enhanceCustomSelects() {
                 // Trigger change event
                 const ev = new Event('change', { bubbles: true });
                 original.dispatchEvent(ev);
-                overlay.style.display = 'none';
+                // update trigger label
+                const opt = original.options[original.selectedIndex];
+                trigger.textContent = opt ? opt.text : '';
+                // close overlay and update aria
+                overlay.classList.remove('open');
+                try { trigger.setAttribute('aria-expanded', 'false'); } catch (err) {}
             });
 
             overlay.appendChild(item);
         });
 
-        wrapper.appendChild(overlay);
+    // Append overlay to body and position it absolutely to avoid affecting layout
+    document.body.appendChild(overlay);
 
-        // Toggle overlay on click of the select
-        original.addEventListener('click', function(e) {
-            // Prevent the native dropdown on some browsers by blurring
+        // Toggle overlay on trigger click (we use a button to avoid native select behavior)
+        trigger.addEventListener('click', function(e) {
             e.preventDefault();
-            const isOpen = overlay.style.display === 'block';
-            document.querySelectorAll('.custom-select-overlay').forEach(function(o) { o.style.display = 'none'; });
-            overlay.style.display = isOpen ? 'none' : 'block';
+            e.stopPropagation();
+
+            // Close other overlays first
+            document.querySelectorAll('.custom-select-overlay.open').forEach(function(o) {
+                if (o !== overlay) o.classList.remove('open');
+            });
+
+            const rect = trigger.getBoundingClientRect();
+            const isOpen = overlay.classList.contains('open');
+            if (isOpen) {
+                overlay.classList.remove('open');
+            } else {
+                overlay.style.position = 'absolute';
+                overlay.style.left = Math.max(8, rect.left + window.scrollX) + 'px';
+                overlay.style.top = Math.max(8, rect.bottom + window.scrollY) + 'px';
+                overlay.style.width = rect.width + 'px';
+                overlay.style.right = 'auto';
+                overlay.classList.add('open');
+                trigger.setAttribute('aria-expanded', 'true');
+                overlay.style.zIndex = '99999';
+
+                // focus first selected or first item
+                const items = overlay.querySelectorAll('.custom-select-item');
+                let focusIndex = Array.from(items).findIndex(i => i.dataset.value === original.value);
+                if (focusIndex < 0) focusIndex = 0;
+                items.forEach(i => i.classList.remove('focused'));
+                if (items[focusIndex]) items[focusIndex].classList.add('focused');
+                items[focusIndex] && items[focusIndex].scrollIntoView({ block: 'nearest' });
+                // focus the trigger so key events work predictably
+                trigger.focus();
+            }
         });
 
-        // Close on outside click
+        // Close on outside click — ensure the overlay (appended to body) closes when clicking elsewhere
         document.addEventListener('click', function(e){
-            if (!wrapper.contains(e.target)) overlay.style.display = 'none';
+            if (!overlay.classList.contains('open')) return;
+            if (!overlay.contains(e.target) && !original.contains(e.target) && !trigger.contains(e.target)) {
+                overlay.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        }, true);
+
+        // Close overlay on scroll or resize to avoid mispositioning
+        const closeOnScrollOrResize = function() {
+            if (overlay.classList.contains('open')) {
+                overlay.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        };
+        window.addEventListener('scroll', closeOnScrollOrResize, true);
+        window.addEventListener('resize', closeOnScrollOrResize);
+
+        // Keyboard navigation: up/down to move, Enter to select, Escape to close
+        trigger.addEventListener('keydown', function(e) {
+            const isOpen = overlay.classList.contains('open');
+            const items = overlay.querySelectorAll('.custom-select-item');
+            if (!items.length) return;
+            let idx = Array.from(items).findIndex(i => i.classList.contains('focused'));
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (!isOpen) { trigger.click(); return; }
+                idx = Math.min(items.length - 1, (idx < 0 ? 0 : idx + 1));
+                items.forEach(i => i.classList.remove('focused'));
+                items[idx].classList.add('focused');
+                items[idx].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (!isOpen) { trigger.click(); return; }
+                idx = Math.max(0, (idx < 0 ? 0 : idx - 1));
+                items.forEach(i => i.classList.remove('focused'));
+                items[idx].classList.add('focused');
+                items[idx].scrollIntoView({ block: 'nearest' });
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (!isOpen) { trigger.click(); return; }
+                if (idx >= 0) {
+                    items[idx].click();
+                }
+            } else if (e.key === 'Escape') {
+                if (isOpen) { overlay.classList.remove('open'); trigger.setAttribute('aria-expanded', 'false'); }
+            }
+        });
+
+        // Update trigger text when original select value changes
+        original.addEventListener('change', function() {
+            const opt = original.options[original.selectedIndex];
+            trigger.textContent = opt ? opt.text : '';
         });
     });
 }

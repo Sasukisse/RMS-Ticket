@@ -339,26 +339,62 @@ select option {
 /* Dropdown arrow visibility fix */
 .select-wrapper {
     position: relative;
+    display: inline-block;
 }
+
+/* remove the generic caret from wrapper (we'll use the trigger button caret instead) */
 .select-wrapper::after {
+    content: none;
+}
+
+/* Ensure selects inside a select-wrapper have extra right padding so text doesn't overlap the caret */
+.select-wrapper .input select,
+.select-wrapper select,
+.select-wrapper select.input {
+    padding-right: 14px !important; /* keep some padding for safety; trigger will show the caret */
+}
+
+/* Caret on the custom trigger button */
+.select-trigger {
+    position: relative;
+    padding-right: 30px !important;
+}
+.select-trigger::after {
     content: '\25BC';
     position: absolute;
-    right: 12px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
     color: var(--muted);
+    font-size: 12px;
 }
 
 /* Custom select overlay styles */
 .custom-select-overlay {
     font-family: inherit;
 }
+.custom-select-overlay {
+    transition: opacity 0.18s ease, transform 0.18s ease;
+    opacity: 0;
+    transform: translateY(-6px);
+    visibility: hidden;
+    pointer-events: none;
+}
+.custom-select-overlay.open {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
+}
 .custom-select-item:hover {
     background: rgba(255,255,255,0.04);
 }
 .custom-select-item {
     transition: background 0.12s ease;
+}
+.custom-select-item.focused {
+    background: rgba(255,255,255,0.08);
 }
 
 .input:focus {
@@ -392,6 +428,20 @@ select option {
 /* Tables */
 .table-responsive {
     overflow-x: auto;
+    /* allow scrolling but hide the scrollbar visuals */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+}
+
+/* Hide webkit scrollbars */
+.table-responsive::-webkit-scrollbar {
+    height: 0px;
+    background: transparent;
+}
+
+/* If you want to completely prevent horizontal scrolling visual bar, you can instead set overflow-x: hidden; */
+.table-responsive.no-scrollbar {
+    overflow-x: hidden !important;
 }
 
 .table {
@@ -958,4 +1008,22 @@ select option {
         width: 100%;
         justify-content: center;
     }
+}
+
+/* Hide common pagination / left-right navigation bars in ticket lists */
+.pagination,
+.pager,
+.table-pagination,
+.table-nav,
+.nav-arrows,
+.dataTables_paginate,
+.dt-toolbar,
+.paging,
+.page-nav {
+    display: none !important;
+}
+
+/* Also hide any standalone previous/next controls often used */
+.prev, .next, .page-prev, .page-next {
+    display: none !important;
 }

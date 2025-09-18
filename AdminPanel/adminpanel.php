@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['droit'] < 1) {
 }
 
 // Configuration
-const APP_NAME = 'RMS-Ticket Admin';
+const APP_NAME = 'RMS Ticket Admin';
 const SESSION_NAME = 'rms_admin_sess';
 
 // Headers de sécurité
@@ -948,7 +948,7 @@ function tickets_view($tickets, $filters): string {
             <?php if (empty($tickets)): ?>
                 <p class="empty-state">Aucun ticket trouvé</p>
             <?php else: ?>
-                <div class="table-responsive">
+                <div class="table-responsive no-scrollbar">
                     <table class="table">
                         <thead>
                             <tr>

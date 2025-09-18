@@ -24,7 +24,7 @@ include '../Database/connection.php';
                 <div class="brand-logo">
                     <span>R</span>
                 </div>
-                <span class="brand-text">RMS-Ticket</span>
+                <span class="brand-text">RMS Ticket</span>
             </div>
             
             <div class="nav-menu">
@@ -51,7 +51,7 @@ include '../Database/connection.php';
     <main class="main-content">
         <div class="hero-section">
             <div class="hero-content">
-                <h1 class="hero-title">Bienvenue sur RMS-Ticket</h1>
+                <h1 class="hero-title">Bienvenue sur RMS Ticket</h1>
                 <p class="hero-subtitle">
                     Votre solution complète de gestion des tickets et support technique
                 </p>
