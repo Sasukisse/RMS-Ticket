@@ -28,18 +28,23 @@ include '../Database/connection.php';
             </div>
             
             <div class="nav-menu">
-                <a href="index.php" class="nav-link active">Accueil</a>
-                <a href="../CreateTickets/create_ticket.php" class="nav-link">Créer un ticket</a>
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <?php if ($_SESSION['droit'] >= 1): ?>
-                        <a href="../AdminPanel/adminpanel.php" class="nav-link">Administration</a>
-                    <?php endif; ?>
-                    <a href="logout.php" class="nav-link">Déconnexion</a>
-                <?php else: ?>
-                    <a href="../Login/login.php" class="nav-link">Connexion</a>
-                <?php endif; ?>
-            </div>
-        </div>
+    <a href="index.php" class="nav-link active">Accueil</a>
+    <a href="../CreateTickets/create_ticket.php" class="nav-link">Créer un ticket</a>
+
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <!-- ✅ Nouveau lien en haut -->
+        <a href="../Tickets/my_tickets.php" class="nav-link">Mes tickets</a>
+
+        <?php if (!empty($_SESSION['droit']) && $_SESSION['droit'] >= 1): ?>
+            <a href="../AdminPanel/adminpanel.php" class="nav-link">Administration</a>
+        <?php endif; ?>
+
+        <a href="logout.php" class="nav-link">Déconnexion</a>
+    <?php else: ?>
+        <a href="../Login/login.php" class="nav-link">Connexion</a>
+    <?php endif; ?>
+</div>
+
     </nav>
 
     <!-- Contenu principal -->
@@ -59,31 +64,21 @@ include '../Database/connection.php';
                 <?php endif; ?>
                 
                 <div class="action-buttons">
-                    <?php if (isset($_SESSION['user_id'])): ?>
-                        <a href="../CreateTickets/create_ticket.php" class="btn btn-primary">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 5v14M5 12h14"/>
-                            </svg>
-                            Créer un ticket
-                        </a>
-                        <?php if ($_SESSION['droit'] >= 1): ?>
-                            <a href="../AdminPanel/adminpanel.php" class="btn btn-secondary">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                                    <circle cx="12" cy="12" r="3"/>
-                                </svg>
-                                Administration
-                            </a>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <a href="../Login/login.php" class="btn btn-primary">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M21 12H9"/>
-                            </svg>
-                            Se connecter
-                        </a>
-                    <?php endif; ?>
-                </div>
+    <?php if (isset($_SESSION['user_id'])): ?>
+        <a href="../CreateTickets/create_ticket.php" class="btn btn-primary">
+    Créer un ticket
+</a>
+
+    <?php else: ?>
+        <a href="../Login/login.php" class="btn btn-primary">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M21 12H9"/>
+            </svg>
+            Se connecter
+        </a>
+    <?php endif; ?>
+</div>
+
             </div>
         </div>
         
