@@ -28,7 +28,7 @@ function status_badge($s) {
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Mes tickets - RMS-Ticket</title>
+  <title>Mes tickets - RMS Ticket</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- On réutilise le CSS de CreateTickets (il contient déjà la navbar) -->
    <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,7 +44,7 @@ function status_badge($s) {
   <div class="nav-container">
     <a href="../HomePage/index.php" class="nav-brand" style="text-decoration:none;color:inherit;">
       <div class="brand-logo"><span>R</span></div>
-      <span class="brand-text">RMS-Ticket</span>
+      <span class="brand-text">RMS Ticket</span>
     </a>
 
     <div class="nav-menu">

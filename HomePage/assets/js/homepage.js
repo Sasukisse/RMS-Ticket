@@ -1,4 +1,4 @@
-// JavaScript pour la page d'accueil RMS-Ticket
+// JavaScript pour la page d'accueil RMS Ticket
 
 document.addEventListener('DOMContentLoaded', function() {
     // Animation d'entrée pour les éléments
@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Effet de typing pour le titre principal (optionnel)
-    const titleText = "Bienvenue sur RMS-Ticket";
+    const titleText = "Bienvenue sur RMS Ticket";
     const heroTitleElement = document.querySelector('.hero-title');
     
     if (heroTitleElement && window.innerWidth > 768) {

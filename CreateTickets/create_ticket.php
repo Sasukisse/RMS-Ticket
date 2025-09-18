@@ -65,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Créer un ticket - RMS-Ticket</title>
+    <title>Créer un ticket - RMS Ticket</title>
     <meta name="color-scheme" content="light dark">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -80,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
   <div class="nav-container">
     <a href="../HomePage/index.php" class="nav-brand" style="text-decoration: none; color: inherit;">
       <div class="brand-logo"><span>R</span></div>
-      <span class="brand-text">RMS-Ticket</span>
+      <span class="brand-text">RMS Ticket</span>
     </a>
 
     <div class="nav-menu">
