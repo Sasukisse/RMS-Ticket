@@ -77,24 +77,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     
     <!-- Navbar -->
     <nav class="navbar">
-        <div class="nav-container">
-            <a href="../HomePage/index.php" class="nav-brand" style="text-decoration: none; color: inherit;">
-                <div class="brand-logo">
-                    <span>R</span>
-                </div>
-                <span class="brand-text">RMS-Ticket</span>
-            </a>
-            
-            <div class="nav-menu">
-                <a href="../HomePage/index.php" class="nav-link">Accueil</a>
-                <a href="create_ticket.php" class="nav-link active">Créer un ticket</a>
-                <?php if ($_SESSION['droit'] >= 1): ?>
-                    <a href="../AdminPanel/adminpanel.php" class="nav-link">Administration</a>
-                <?php endif; ?>
-                <a href="../HomePage/logout.php" class="nav-link">Déconnexion</a>
-            </div>
-        </div>
-    </nav>
+  <div class="nav-container">
+    <a href="../HomePage/index.php" class="nav-brand" style="text-decoration: none; color: inherit;">
+      <div class="brand-logo"><span>R</span></div>
+      <span class="brand-text">RMS-Ticket</span>
+    </a>
+
+    <div class="nav-menu">
+      <a href="../HomePage/index.php" class="nav-link">Accueil</a>
+      <a href="../CreateTickets/create_ticket.php" class="nav-link active">Créer un ticket</a>
+      <a href="../Tickets/my_tickets.php" class="nav-link">Mes tickets</a>
+      <?php if (!empty($_SESSION['droit']) && $_SESSION['droit']>=1): ?>
+        <a href="../AdminPanel/adminpanel.php" class="nav-link">Administration</a>
+      <?php endif; ?>
+      <a href="../HomePage/logout.php" class="nav-link">Déconnexion</a>
+    </div>
+  </div> <!-- ✅ fermeture nav-container -->
+</nav>
+
 
     <!-- Contenu principal -->
     <main class="main-content">
@@ -187,11 +187,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
 
                     <button type="submit" id="submitBtn" class="submit-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M12 5v14M5 12h14"/>
-                        </svg>
-                        Créer le ticket
-                    </button>
+    Créer le ticket
+</button>
+
                 </form>
             </div>
         </div>
