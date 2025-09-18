@@ -98,10 +98,94 @@ function log_admin_action($action, $details = '', $user_id = null) {
     $user_id = $user_id ?? $_SESSION['user_id'];
     $ip_address = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
     $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
-    
-    $stmt = $conn->prepare('INSERT INTO admin_logs (user_id, action, details, ip_address, user_agent, created_at) VALUES (?, ?, ?, ?, ?, NOW())');
-    $stmt->bind_param('issss', $user_id, $action, $details, $ip_address, $user_agent);
-    $stmt->execute();
+
+    // Vérifier si la table admin_logs possède des colonnes optionnelles (ex: entity_type, entity_id)
+    $has_entity_type = false;
+    $has_entity_id = false;
+    $res = $conn->query("SHOW COLUMNS FROM admin_logs LIKE 'entity_type'");
+    if ($res && $res->num_rows > 0) $has_entity_type = true;
+    $res = $conn->query("SHOW COLUMNS FROM admin_logs LIKE 'entity_id'");
+    if ($res && $res->num_rows > 0) $has_entity_id = true;
+
+    // Construire la requête et les paramètres dynamiquement
+    $columns = ['user_id', 'action', 'details', 'ip_address', 'user_agent'];
+    $placeholders = ['?', '?', '?', '?', '?'];
+    $types = 'issss';
+    $params = [$user_id, $action, $details, $ip_address, $user_agent];
+
+    if ($has_entity_type) {
+        // Si la colonne existe mais qu'aucune valeur n'est fournie, insérer une chaîne vide pour respecter NOT NULL
+        $columns[] = 'entity_type';
+        $placeholders[] = '?';
+        $types .= 's';
+        $params[] = '';
+    }
+    if ($has_entity_id) {
+        $columns[] = 'entity_id';
+        $placeholders[] = '?';
+        $types .= 'i';
+        $params[] = 0;
+    }
+
+    $columns[] = 'created_at';
+    $placeholders[] = 'NOW()';
+
+    $sql = 'INSERT INTO admin_logs (' . implode(', ', $columns) . ') VALUES (' . implode(', ', $placeholders) . ')';
+    $stmt = $conn->prepare($sql);
+    if ($stmt === false) {
+        // Ne pas interrompre l'exécution; enregistrer l'erreur si possible
+        error_log('log_admin_action prepare failed: ' . $conn->error);
+        return;
+    }
+
+    // bind_param requires variables by reference
+    $bind_names = [];
+    $bind_names[] = & $types;
+    foreach ($params as $i => $value) {
+        $bind_names[] = & $params[$i];
+    }
+    call_user_func_array([$stmt, 'bind_param'], $bind_names);
+    try {
+        $stmt->execute();
+    } catch (mysqli_sql_exception $e) {
+        // Si l'erreur concerne la colonne 'details', tenter un second essai en réduisant details à une chaîne vide
+        error_log('log_admin_action execute failed: ' . $e->getMessage());
+        $msg = $e->getMessage();
+        if (stripos($msg, 'details') !== false) {
+            // Trouver l'indice de 'details' dans $params (normalement à l'index 2)
+            // Défensive: chercher la première valeur qui correspond au contenu original $details
+            $found = false;
+            foreach ($params as $k => $v) {
+                if ($v === $details) {
+                    $params[$k] = '';
+                    $found = true;
+                    break;
+                }
+            }
+            if (!$found && isset($params[2])) {
+                $params[2] = '';
+            }
+
+            // Rebind et retenter
+            $bind_names = [];
+            $bind_names[] = & $types;
+            foreach ($params as $i => $value) {
+                $bind_names[] = & $params[$i];
+            }
+            try {
+                call_user_func_array([$stmt, 'bind_param'], $bind_names);
+                $stmt->execute();
+            } catch (Exception $e2) {
+                error_log('log_admin_action second execute failed: ' . $e2->getMessage());
+                // On abandonne silencieusement pour ne pas planter l'interface admin
+                return;
+            }
+        } else {
+            // Erreur non liée à details — consigner et ne pas remonter l'exception
+            error_log('log_admin_action non-details error: ' . $e->getMessage());
+            return;
+        }
+    }
 }
 
 // =========================
