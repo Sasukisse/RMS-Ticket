@@ -77,37 +77,44 @@ function status_badge($s) {
           <div class="table-wrapper">
             <table class="tickets-table">
               <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Intitulé</th>
-                  <th>Catégorie</th>
-                  <th>Type</th>
-                  <th>Statut</th>
-                  <th>Créé le</th>
-                </tr>
-              </thead>
-              <tbody>
-                <?php foreach ($tickets as $t): ?>
-                  <tr>
-                    <td><?= (int)$t['id'] ?></td>
-                    <td class="title"><?= htmlspecialchars($t['title'], ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars(ucfirst($t['category']), ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= htmlspecialchars(ucfirst($t['type']), ENT_QUOTES, 'UTF-8') ?></td>
-                    <td><?= status_badge($t['status']) ?></td>
-                    <td><?= htmlspecialchars($t['created_at'], ENT_QUOTES, 'UTF-8') ?></td>
-                  </tr>
-                <?php endforeach; ?>
-              </tbody>
+  <tr>
+    <th>#</th>
+    <th>Intitulé</th>
+    <th>Catégorie</th>
+    <th>Type</th>
+    <th>Statut</th>
+    <th>Créé le</th>
+    <th>Actions</th> <!-- ✅ -->
+  </tr>
+</thead>
+<tbody>
+<?php foreach ($tickets as $t): ?>
+  <tr>
+    <td><?= (int)$t['id'] ?></td>
+    <td class="title"><?= htmlspecialchars($t['title'], ENT_QUOTES, 'UTF-8') ?></td>
+    <td><?= htmlspecialchars(ucfirst($t['category']), ENT_QUOTES, 'UTF-8') ?></td>
+    <td><?= htmlspecialchars(ucfirst($t['type']), ENT_QUOTES, 'UTF-8') ?></td>
+    <td><?= status_badge($t['status']) ?></td>
+    <td><?php $dt=new DateTime($t['created_at']); echo $dt->format('d/m/Y H:i'); ?></td>
+    <td>
+      <a class="btn small" href="ticket.php?id=<?= (int)$t['id'] ?>" style="text-decoration:none;">
+        Voir
+      </a>
+    </td>
+  </tr>
+<?php endforeach; ?>
+</tbody>
+
             </table>
           </div>
         <?php endif; ?>
 
         <div style="margin-top:1rem; display:flex; gap:.5rem;">
           <a class="btn submit-btn" href="../CreateTickets/create_ticket.php" style="text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;">
-            ➕ Créer un ticket
+            Créer un ticket
           </a>
           <a class="btn submit-btn" href="../HomePage/index.php" style="text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;background:rgba(255,255,255,0.08);">
-            ⬅️ Retour accueil
+            Retour accueil
           </a>
         </div>
       </div>
