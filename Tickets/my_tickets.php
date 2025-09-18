@@ -17,6 +17,59 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute([$_SESSION['user_id']]);
 $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Calculer les messages non lus par ticket pour cet utilisateur
+$unreadCounts = [];
+if ($tickets) {
+    // Préparer une requête qui compte les réponses non lues par ticket
+    // On utilise ticket_responses (admin) si présent, sinon ticket_messages (legacy)
+    $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?");
+    $stmtCheck->execute(['ticket_responses']);
+    $hasResponses = (int)$stmtCheck->fetchColumn() > 0;
+
+    // Récupérer les IDs de tickets
+    $ids = array_map(function($t){ return (int)$t['id']; }, $tickets);
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+
+    if ($hasResponses) {
+        $sqlUnread = "SELECT tr.ticket_id, COUNT(*) AS cnt
+                      FROM ticket_responses tr
+                      LEFT JOIN (
+                        SELECT ticket_id, MAX(last_read_at) AS last_read
+                        FROM ticket_message_reads
+                        WHERE user_id = ?
+                        GROUP BY ticket_id
+                      ) r ON r.ticket_id = tr.ticket_id
+                      WHERE tr.ticket_id IN ($placeholders)
+                        AND tr.created_at > COALESCE(r.last_read, '1970-01-01 00:00:00')
+                        AND tr.user_id != ?
+                      GROUP BY tr.ticket_id";
+        $params = array_merge([$_SESSION['user_id']], $ids, [$_SESSION['user_id']]);
+        $stmtU = $pdo->prepare($sqlUnread);
+        $stmtU->execute($params);
+        $rows = $stmtU->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as $r) $unreadCounts[(int)$r['ticket_id']] = (int)$r['cnt'];
+    } else {
+        // fallback to ticket_messages
+        $sqlUnread2 = "SELECT tm.ticket_id, COUNT(*) AS cnt
+                       FROM ticket_messages tm
+                       LEFT JOIN (
+                         SELECT ticket_id, MAX(last_read_at) AS last_read
+                         FROM ticket_message_reads
+                         WHERE user_id = ?
+                         GROUP BY ticket_id
+                       ) r ON r.ticket_id = tm.ticket_id
+                       WHERE tm.ticket_id IN ($placeholders)
+                        AND tm.created_at > COALESCE(r.last_read, '1970-01-01 00:00:00')
+                        AND tm.sender_id != ?
+                       GROUP BY tm.ticket_id";
+        $params2 = array_merge([$_SESSION['user_id']], $ids, [$_SESSION['user_id']]);
+        $stmtU2 = $pdo->prepare($sqlUnread2);
+        $stmtU2->execute($params2);
+        $rows2 = $stmtU2->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows2 as $r) $unreadCounts[(int)$r['ticket_id']] = (int)$r['cnt'];
+    }
+}
+
 // Badge de statut
 function status_badge($s) {
     $map = ['open'=>'Ouvert','in_progress'=>'En cours','resolved'=>'Résolu','closed'=>'Fermé'];
@@ -35,6 +88,9 @@ function status_badge($s) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="my_tickets.css">
+  <style>
+    .ticket-unread-badge { display:inline-block; min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-weight:700;font-size:.75rem;line-height:20px;text-align:center;margin-left:8px; }
+  </style>
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -91,7 +147,10 @@ function status_badge($s) {
   </tr>
 </thead>
 <tbody>
-<?php foreach ($tickets as $t): ?>
+<?php foreach ($tickets as $t): 
+    $tid = (int)$t['id'];
+    $nUnread = isset($unreadCounts[$tid]) ? (int)$unreadCounts[$tid] : 0;
+?>
   <tr>
     <td><?= (int)$t['id'] ?></td>
     <td class="title"><?= htmlspecialchars($t['title'], ENT_QUOTES, 'UTF-8') ?></td>
@@ -100,8 +159,11 @@ function status_badge($s) {
     <td><?= status_badge($t['status']) ?></td>
     <td><?php $dt=new DateTime($t['created_at']); echo $dt->format('d/m/Y H:i'); ?></td>
     <td>
-      <a class="btn small" href="ticket.php?id=<?= (int)$t['id'] ?>" style="text-decoration:none;">
+      <a class="btn small" href="ticket.php?id=<?= (int)$t['id'] ?>" style="text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;">
         Voir
+        <?php if ($nUnread > 0): ?>
+          <span class="ticket-unread-badge"><?= $nUnread > 99 ? '99+' : $nUnread ?></span>
+        <?php endif; ?>
       </a>
     </td>
   </tr>

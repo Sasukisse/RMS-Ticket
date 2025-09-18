@@ -31,9 +31,11 @@ include '../Database/connection.php';
     <a href="index.php" class="nav-link active">Accueil</a>
     <a href="../CreateTickets/create_ticket.php" class="nav-link">Créer un ticket</a>
 
-    <?php if (isset($_SESSION['user_id'])): ?>
+        <?php if (isset($_SESSION['user_id'])): ?>
         <!-- ✅ Nouveau lien en haut -->
-        <a href="../Tickets/my_tickets.php" class="nav-link">Mes tickets</a>
+        <a href="../Tickets/my_tickets.php" class="nav-link" id="nav-mes-tickets" style="position:relative;">Mes tickets
+            <span id="tickets-unread-badge" style="display:none;position:absolute;top:-6px;right:-10px;background:#e11d48;color:#fff;border-radius:999px;padding:2px 6px;font-size:12px;line-height:1;">0</span>
+        </a>
 
         <?php if (!empty($_SESSION['droit']) && $_SESSION['droit'] >= 1): ?>
             <a href="../AdminPanel/adminpanel.php" class="nav-link">Administration</a>
@@ -121,6 +123,36 @@ include '../Database/connection.php';
         </div>
     </main>
 
+    <script>
+        // Poll notifications API and update unread badge for "Mes tickets"
+        (function(){
+            const badge = document.getElementById('tickets-unread-badge');
+            if (!badge) return;
+
+            async function fetchUnread() {
+                try {
+                    const res = await fetch('../Tickets/notifications_api.php');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    // API may return either { unread: N } or { unread_count: N } (debug/info variants)
+                    const count = parseInt(data.unread_count || data.unread || 0, 10);
+                    if (count > 0) {
+                        badge.style.display = 'inline-block';
+                        badge.textContent = count > 99 ? '99+' : String(count);
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                } catch (e) {
+                    // silently ignore network errors
+                    console.error('Notif fetch error', e);
+                }
+            }
+
+            // Initial fetch and periodic polling every 10s
+            fetchUnread();
+            setInterval(fetchUnread, 10000);
+        })();
+    </script>
     <script src="assets/js/homepage.js"></script>
 </body>
 </html>
