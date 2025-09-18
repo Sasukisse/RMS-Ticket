@@ -983,12 +983,14 @@ function tickets_view($tickets, $filters): string {
                                             <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
                                             <input type="hidden" name="op" value="update_status">
                                             <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
-                                            <select name="status" onchange="this.form.submit()" class="input input-sm">
+                                            <div class="select-wrapper">
+                                                <select name="status" onchange="this.form.submit()" class="input input-sm" data-custom="true">
                                                 <option value="open" <?= $ticket['status'] === 'open' ? 'selected' : '' ?>>Ouvert</option>
                                                 <option value="in_progress" <?= $ticket['status'] === 'in_progress' ? 'selected' : '' ?>>En cours</option>
                                                 <option value="resolved" <?= $ticket['status'] === 'resolved' ? 'selected' : '' ?>>Résolu</option>
                                                 <option value="closed" <?= $ticket['status'] === 'closed' ? 'selected' : '' ?>>Fermé</option>
                                             </select>
+                                            </div>
                                         </form>
                                         
                                         <?php if (current_user()['droit'] >= 2): ?>
@@ -1510,15 +1512,17 @@ function ticket_detail_view($ticket, $responses): string {
                     </div>
                 </div>
                 <div class="ticket-actions">
-                    <form method="POST" style="display: inline;">
-                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                        <input type="hidden" name="op" value="update_status">
-                        <select name="status" onchange="this.form.submit()" class="input">
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                                <input type="hidden" name="op" value="update_status">
+                                <div class="select-wrapper">
+                                <select name="status" onchange="this.form.submit()" class="input" data-custom="true">
                             <option value="open" <?= $ticket['status'] === 'open' ? 'selected' : '' ?>>Ouvert</option>
                             <option value="in_progress" <?= $ticket['status'] === 'in_progress' ? 'selected' : '' ?>>En cours</option>
                             <option value="resolved" <?= $ticket['status'] === 'resolved' ? 'selected' : '' ?>>Résolu</option>
                             <option value="closed" <?= $ticket['status'] === 'closed' ? 'selected' : '' ?>>Fermé</option>
                         </select>
+                        </div>
                     </form>
                 </div>
             </div>

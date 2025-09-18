@@ -317,6 +317,50 @@ body {
     transition: all 0.2s ease;
 }
 
+/* Ensure select dropdowns are readable on dark theme */
+.input select,
+select,
+select.input {
+    background: var(--input-bg) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--input-border) !important;
+    padding: 10px 12px !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* Options styling (may be limited by browser) */
+select option {
+    background: #0f172a; /* dark background for dropdown options */
+    color: var(--text);
+}
+
+/* Dropdown arrow visibility fix */
+.select-wrapper {
+    position: relative;
+}
+.select-wrapper::after {
+    content: '\25BC';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--muted);
+}
+
+/* Custom select overlay styles */
+.custom-select-overlay {
+    font-family: inherit;
+}
+.custom-select-item:hover {
+    background: rgba(255,255,255,0.04);
+}
+.custom-select-item {
+    transition: background 0.12s ease;
+}
+
 .input:focus {
     outline: none;
     border-color: var(--primary);

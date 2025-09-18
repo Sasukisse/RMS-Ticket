@@ -235,3 +235,81 @@ window.editUser = editUser;
 window.resetPassword = resetPassword;
 window.showNotification = showNotification;
 window.copyToClipboard = copyToClipboard;
+
+// =========================
+// CUSTOM SELECT ENHANCEMENT
+// =========================
+function enhanceCustomSelects() {
+    document.querySelectorAll('select[data-custom="true"]').forEach(function(original) {
+        // Skip if already enhanced
+        if (original.dataset.enhanced === '1') return;
+        original.dataset.enhanced = '1';
+
+        // Wrap already exists in markup (select-wrapper), we will attach an overlay
+        const wrapper = original.closest('.select-wrapper') || original.parentElement;
+        wrapper.style.position = 'relative';
+
+        // Create overlay list
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-select-overlay';
+        overlay.style.position = 'absolute';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.top = '100%';
+        overlay.style.background = '#0f172a';
+        overlay.style.border = '1px solid rgba(255,255,255,0.06)';
+        overlay.style.boxShadow = '0 10px 30px rgba(0,0,0,0.6)';
+        overlay.style.zIndex = '3000';
+        overlay.style.display = 'none';
+        overlay.style.maxHeight = '220px';
+        overlay.style.overflow = 'auto';
+        overlay.style.borderRadius = '8px';
+        overlay.style.padding = '6px 0';
+
+        // Build options
+        Array.from(original.options).forEach(function(opt, idx) {
+            const item = document.createElement('div');
+            item.className = 'custom-select-item';
+            item.textContent = opt.textContent;
+            item.dataset.value = opt.value;
+            item.style.padding = '8px 12px';
+            item.style.cursor = 'pointer';
+            item.style.color = '#e5e7eb';
+            item.style.fontSize = '14px';
+            item.style.whiteSpace = 'nowrap';
+            item.style.overflow = 'hidden';
+            item.style.textOverflow = 'ellipsis';
+            if (opt.selected) item.style.background = 'rgba(255,255,255,0.06)';
+
+            item.addEventListener('click', function(e) {
+                original.value = this.dataset.value;
+                // Trigger change event
+                const ev = new Event('change', { bubbles: true });
+                original.dispatchEvent(ev);
+                overlay.style.display = 'none';
+            });
+
+            overlay.appendChild(item);
+        });
+
+        wrapper.appendChild(overlay);
+
+        // Toggle overlay on click of the select
+        original.addEventListener('click', function(e) {
+            // Prevent the native dropdown on some browsers by blurring
+            e.preventDefault();
+            const isOpen = overlay.style.display === 'block';
+            document.querySelectorAll('.custom-select-overlay').forEach(function(o) { o.style.display = 'none'; });
+            overlay.style.display = isOpen ? 'none' : 'block';
+        });
+
+        // Close on outside click
+        document.addEventListener('click', function(e){
+            if (!wrapper.contains(e.target)) overlay.style.display = 'none';
+        });
+    });
+}
+
+// Enhance selects after DOM ready and after animations
+setTimeout(enhanceCustomSelects, 200);
+window.enhanceCustomSelects = enhanceCustomSelects;
