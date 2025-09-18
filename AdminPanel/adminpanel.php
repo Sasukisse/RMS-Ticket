@@ -738,6 +738,9 @@ function page_layout(string $title, string $content, array $opts = []): void {
             </a>
             
             <div class="nav-menu">
+                <a href="../HomePage/index.php" class="nav-link">
+                    <i class="fas fa-home"></i> Accueil
+                </a>
                 <a href="?action=dashboard" class="nav-link <?= $current_action === 'dashboard' ? 'active' : '' ?>">
                     <i class="fas fa-tachometer-alt"></i> Tableau de bord
                 </a>
