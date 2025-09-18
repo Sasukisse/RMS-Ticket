@@ -72,8 +72,13 @@ function status_badge($s) {
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Ticket #<?= (int)$ticket['id'] ?> - RMS-Ticket</title>
+  <title>Ticket #<?= (int)$ticket['id'] ?> - RMS Ticket</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../HomePage/assets/css/homepage.css">
   <link rel="stylesheet" href="../CreateTickets/style.css">
 </head>
 <body>
@@ -84,7 +89,7 @@ function status_badge($s) {
     <div class="nav-container">
       <a href="../HomePage/index.php" class="nav-brand" style="text-decoration:none;color:inherit;">
         <div class="brand-logo"><span>R</span></div>
-        <span class="brand-text">RMS-Ticket</span>
+        <span class="brand-text">RMS Ticket</span>
       </a>
       <div class="nav-menu">
         <a href="../HomePage/index.php" class="nav-link">Accueil</a>
@@ -165,10 +170,89 @@ function status_badge($s) {
             — Dernière mise à jour : <strong><?= $u->format('d/m/Y H:i') ?></strong>
           <?php endif; ?>
         </div>
+
+        <!-- Chat lié au ticket -->
+        <div id="ticket-chat" style="margin-top:1.25rem;">
+          <h3>Discussion</h3>
+          <div id="chat-box" style="border:1px solid rgba(255,255,255,0.07);padding:.8rem;height:300px;overflow:auto;background:rgba(0,0,0,0.03);">
+            <!-- messages injectés ici -->
+            <div style="color:var(--muted);">Chargement des messages…</div>
+          </div>
+
+          <form id="chat-form" style="display:flex;gap:.5rem;margin-top:.6rem;align-items:center;" onsubmit="return false;">
+            <input id="chat-input" name="message" type="text" placeholder="Écrire un message..." style="flex:1;min-width:0;padding:.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);" autocomplete="off" />
+            <button id="chat-send" type="button" class="submit-btn" style="width:auto;min-width:88px;flex-shrink:0;padding:10px 14px;">Envoyer</button>
+          </form>
+        </div>
       </div>
     </div>
   </main>
 
   <script src="../CreateTickets/app.js"></script>
+  <script>
+  (function(){
+    const ticketId = <?= (int)$ticket['id'] ?>;
+    const api = 'chat_api.php';
+    const box = document.getElementById('chat-box');
+    const input = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
+
+    function esc(s){
+      return String(s)
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/'/g,'&#039;');
+    }
+
+    function render(messages){
+      if (!Array.isArray(messages)) return;
+      box.innerHTML = messages.map(m=>{
+        const who = m.username ? esc(m.username) : ('ID:'+m.sender_id);
+        const time = new Date(m.created_at).toLocaleString();
+        return '<div style="margin-bottom:.6rem;"><strong>'+who+'</strong> <small style="color:#777;margin-left:.4rem;">'+time+'</small><div style="margin-top:.25rem;">'+esc(m.message)+'</div></div>';
+      }).join('');
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function fetchMessages(){
+      try{
+        const res = await fetch(api+'?ticket_id='+ticketId);
+        if (!res.ok) return;
+        const data = await res.json();
+        render(data);
+        // après avoir chargé les messages, marquer comme lus
+        try { fetch('mark_read.php', { method: 'POST', body: new URLSearchParams({ ticket_id: ticketId }) }); } catch(e){}
+      }catch(e){console.error(e)}
+    }
+
+    async function sendMessage(){
+      const v = input.value.trim();
+      if (!v) return;
+      try{
+        const params = new URLSearchParams();
+        params.append('ticket_id', ticketId);
+        params.append('message', v);
+        const res = await fetch(api, { method: 'POST', body: params });
+        if (!res.ok) {
+          alert('Erreur lors de l\'envoi');
+          return;
+        }
+        input.value = '';
+        fetchMessages();
+      }catch(e){console.error(e)}
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    input.addEventListener('keydown', function(e){ if (e.key === 'Enter') sendMessage(); });
+
+    // polling régulier
+  fetchMessages();
+  // aussi marquer comme lu dès l'ouverture de la page
+  try { fetch('mark_read.php', { method: 'POST', body: new URLSearchParams({ ticket_id: ticketId }) }); } catch(e){}
+    setInterval(fetchMessages, 2500);
+  })();
+  </script>
 </body>
 </html>

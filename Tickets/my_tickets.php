@@ -47,10 +47,13 @@ function status_badge($s) {
       <span class="brand-text">RMS Ticket</span>
     </a>
 
-    <div class="nav-menu">
-      <a href="../HomePage/index.php" class="nav-link">Accueil</a>
-      <a href="../CreateTickets/create_ticket.php" class="nav-link">Créer un ticket</a>
-      <a href="../Tickets/my_tickets.php" class="nav-link active">Mes tickets</a>
+  <div class="nav-menu">
+  <a href="../HomePage/index.php" class="nav-link">Accueil</a>
+  <a href="../CreateTickets/create_ticket.php" class="nav-link">Créer un ticket</a>
+      <a href="../Tickets/my_tickets.php" class="nav-link active" id="nav-my-tickets" style="position:relative;display:inline-block;padding-right:18px;">
+        Mes tickets
+        <span id="tickets-badge" style="position:absolute;top:-6px;right:2px;display:none;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-weight:700;font-size:.75rem;line-height:20px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.3);">0</span>
+      </a>
       <?php if (!empty($_SESSION['droit']) && $_SESSION['droit']>=1): ?>
         <a href="../AdminPanel/adminpanel.php" class="nav-link">Administration</a>
       <?php endif; ?>
@@ -122,3 +125,26 @@ function status_badge($s) {
   </main>
 </body>
 </html>
+<script>
+  (function(){
+    const badge = document.getElementById('tickets-badge');
+    if (!badge) return;
+    async function fetchUnread(){
+      try{
+        const res = await fetch('notifications_api.php');
+        if (!res.ok) return;
+        const json = await res.json();
+        const n = parseInt(json.unread || 0, 10);
+        if (n > 0) {
+          badge.style.display = 'inline-block';
+          badge.textContent = n;
+        } else {
+          badge.style.display = 'none';
+        }
+      }catch(e){console.error(e)}
+    }
+
+    fetchUnread();
+    setInterval(fetchUnread, 10000);
+  })();
+</script>
