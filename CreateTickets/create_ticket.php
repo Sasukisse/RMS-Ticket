@@ -11,6 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 // Gestion soumission du formulaire
 $success = false;
 $error = false;
+$errors = [];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $title = trim($_POST["title"] ?? '');
@@ -19,13 +20,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $type = trim($_POST["type"] ?? '');
 
     // Validation des données
-    if (empty($title) || empty($description) || empty($category) || empty($type)) {
-        $error = "Veuillez remplir tous les champs obligatoires.";
-    } elseif (strlen($title) < 4) {
-        $error = "Le titre doit contenir au moins 4 caractères.";
-    } elseif (strlen($description) < 10) {
-        $error = "La description doit contenir au moins 10 caractères.";
-    } else {
+    if (empty($title)) { $errors[] = "Le titre est obligatoire."; }
+    if (empty($description)) { $errors[] = "La description est obligatoire."; }
+    if (empty($category)) { $errors[] = "La catégorie est obligatoire."; }
+    if (empty($type)) { $errors[] = "Le type est obligatoire."; }
+
+    if ($title !== '' && mb_strlen($title) < 4) { $errors[] = "Le titre doit contenir au moins 4 caractères."; }
+    if ($description !== '' && mb_strlen($description) < 10) { $errors[] = "La description doit contenir au moins 10 caractères."; }
+
+    if (empty($errors)) {
         try {
     // Créer la table tickets si elle n'existe pas
     $createTableSQL = "CREATE TABLE IF NOT EXISTS `tickets` (
@@ -57,6 +60,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $error = "Erreur lors de la création du ticket. Veuillez réessayer.";
 }
 
+    } else {
+        $error = implode("\n", $errors);
     }
 }
 ?>
@@ -124,49 +129,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             <line x1="15" y1="9" x2="9" y2="15"/>
                             <line x1="9" y1="9" x2="15" y2="15"/>
                         </svg>
-                        <?php echo htmlspecialchars($error); ?>
+                        <?php echo nl2br(htmlspecialchars($error)); ?>
                     </div>
                 <?php endif; ?>
 
                 <form method="post" id="ticketForm" class="ticket-form">
-                    <div class="user-info">
-                        <div class="field">
-                            <label>Nom & Prénom</label>
-                            <input type="text" value="<?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>" disabled>
-                        </div>
-                        <div class="field">
-                            <label>Email</label>
-                            <input type="email" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" disabled>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label for="title">Titre du ticket <span class="required">*</span></label>
-                        <input type="text" id="title" name="title" required placeholder="Ex: Problème d'accès Wi-Fi" maxlength="255">
-                    </div>
-
-                    <div class="field">
-                        <label for="description">Description <span class="required">*</span></label>
-                        <textarea id="description" name="description" required placeholder="Décrivez le problème en détail..." maxlength="500"></textarea>
-                        <div class="char-counter" id="descCounter">0/500</div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="field">
-                            <label for="category">Catégorie <span class="required">*</span></label>
-                            <select id="category" name="category" required>
-  <option value="" disabled selected hidden>Choisir une catégorie</option>
-  <option value="materiel">🖥️ Matériel</option>
-  <option value="logiciel">💿 Logiciel</option>
-  <option value="reseau">🌐 Réseau</option>
-  <option value="autre">❓ Autre</option>
-</select>
-
-                        </div>
-
-                        <!-- Priorité supprimée de l'interface; la valeur par défaut en base est utilisée -->
-                    </div>
-
+                    <!-- Déplacer Catégorie et Type en haut -->
                     <div class="field">
                         <label>Type <span class="required">*</span></label>
                         <div class="radio-group">
@@ -187,6 +155,43 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                 </div>
                             </label>
                         </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="field">
+                            <label for="category">Catégorie <span class="required">*</span></label>
+                            <select id="category" name="category" required>
+  <option value="" disabled selected hidden>Choisir une catégorie</option>
+  <option value="materiel">🖥️ Matériel</option>
+  <option value="logiciel">💿 Logiciel</option>
+  <option value="reseau">🌐 Réseau</option>
+  <option value="autre">❓ Autre</option>
+</select>
+                        </div>
+
+                        <!-- Priorité supprimée de l'interface; la valeur par défaut en base est utilisée -->
+                    </div>
+
+                    <div class="user-info">
+                        <div class="field">
+                            <label>Nom & Prénom</label>
+                            <input type="text" value="<?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>" disabled>
+                        </div>
+                        <div class="field">
+                            <label>Email</label>
+                            <input type="email" value="<?php echo htmlspecialchars($_SESSION['email']); ?>" disabled>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label for="title">Titre du ticket <span class="required">*</span></label>
+                        <input type="text" id="title" name="title" required placeholder="Ex: Problème d'accès Wi-Fi" maxlength="255">
+                    </div>
+
+                    <div class="field">
+                        <label for="description">Description <span class="required">*</span></label>
+                        <textarea id="description" name="description" required placeholder="Décrivez le problème en détail..." maxlength="500"></textarea>
+                        <div class="char-counter" id="descCounter">0/500</div>
                     </div>
 
                     <button type="submit" id="submitBtn" class="submit-btn">

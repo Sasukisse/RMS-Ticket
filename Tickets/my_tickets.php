@@ -151,14 +151,14 @@ function status_badge($s) {
     $tid = (int)$t['id'];
     $nUnread = isset($unreadCounts[$tid]) ? (int)$unreadCounts[$tid] : 0;
 ?>
-  <tr>
+  <tr class="ticket-row" data-href="ticket.php?id=<?= $tid ?>" style="cursor:pointer;">
     <td><?= (int)$t['id'] ?></td>
     <td class="title"><?= htmlspecialchars($t['title'], ENT_QUOTES, 'UTF-8') ?></td>
     <td><?= htmlspecialchars(ucfirst($t['category']), ENT_QUOTES, 'UTF-8') ?></td>
     <td><?= htmlspecialchars(ucfirst($t['type']), ENT_QUOTES, 'UTF-8') ?></td>
     <td><?= status_badge($t['status']) ?></td>
     <td><?php $dt=new DateTime($t['created_at']); echo $dt->format('d/m/Y H:i'); ?></td>
-    <td>
+    <td onclick="event.stopPropagation()">
       <a class="btn small" href="ticket.php?id=<?= (int)$t['id'] ?>" style="text-decoration:none;display:inline-flex;align-items:center;gap:.4rem;">
         Voir
         <?php if ($nUnread > 0): ?>
@@ -206,6 +206,17 @@ function status_badge($s) {
 
       fetchUnread();
       setInterval(fetchUnread, 10000);
+    })();
+
+    // Rendre toute la ligne cliquable
+    (function(){
+      const rows = document.querySelectorAll('.ticket-row');
+      rows.forEach(row => {
+        row.addEventListener('click', function(){
+          const href = this.getAttribute('data-href');
+          if (href) window.location.href = href;
+        });
+      });
     })();
   </script>
 </body>

@@ -30,6 +30,20 @@ $error = null;
 
 // Traitement POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  // Recharger statut actuel depuis la BD pour éviter la modification concurrente
+  $st = $pdo->prepare("SELECT status FROM tickets WHERE id = ? AND user_id = ?");
+  $st->execute([$ticket['id'], $_SESSION['user_id']]);
+  $currentStatus = $st->fetchColumn();
+  if ($currentStatus === false) {
+    http_response_code(404);
+    exit('Ticket introuvable.');
+  }
+  $ticket['status'] = $currentStatus; // synchroniser
+
+  // Si fermé, aucune modification n'est autorisée
+  if ($ticket['status'] === 'closed') {
+    $error = "Ce ticket est fermé : aucune modification n'est autorisée.";
+  } else {
   // Fermer
   if (isset($_POST['action']) && $_POST['action'] === 'close') {
     if ($ticket['status'] !== 'closed') {
@@ -58,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $ticket['description'] = $description;
       $success = "Modifications enregistrées.";
     }
+  }
   }
 }
 
@@ -133,25 +148,26 @@ function status_badge($s) {
         </div>
 
         <!-- Formulaire d’édition limité -->
+        <?php $isClosed = ($ticket['status'] === 'closed'); ?>
         <form method="post" class="ticket-form" style="margin-top:.5rem;">
           <div class="field">
             <label for="title">Intitulé <span class="required">*</span></label>
             <input id="title" name="title" type="text" required maxlength="255"
                    value="<?= htmlspecialchars($ticket['title']) ?>"
-                   placeholder="Intitulé du ticket">
+                   placeholder="Intitulé du ticket" <?= $isClosed ? 'disabled' : '' ?>>
           </div>
 
           <div class="field">
             <label for="description">Description <span class="required">*</span></label>
             <textarea id="description" name="description" required maxlength="2000"
-                      placeholder="Décrivez le problème..."><?= htmlspecialchars($ticket['description']) ?></textarea>
+                      placeholder="Décrivez le problème..." <?= $isClosed ? 'disabled' : '' ?>><?= htmlspecialchars($ticket['description']) ?></textarea>
           </div>
 
           <div style="display:flex; gap:.75rem; flex-wrap:wrap;">
-            <button class="submit-btn" type="submit" name="action" value="update">
+            <button class="submit-btn" type="submit" name="action" value="update" <?= $isClosed ? 'disabled aria-disabled="true"' : '' ?>>
               Enregistrer
             </button>
-            <?php if ($ticket['status'] !== 'closed'): ?>
+            <?php if (!$isClosed): ?>
               <button class="submit-btn" type="submit" name="action" value="close" style="background:rgba(239,68,68,.9)">
                 Clôturer le ticket
               </button>
@@ -180,8 +196,8 @@ function status_badge($s) {
           </div>
 
           <form id="chat-form" style="display:flex;gap:.5rem;margin-top:.6rem;align-items:center;" onsubmit="return false;">
-            <input id="chat-input" name="message" type="text" placeholder="Écrire un message..." style="flex:1;min-width:0;padding:.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);" autocomplete="off" />
-            <button id="chat-send" type="button" class="submit-btn" style="width:auto;min-width:88px;flex-shrink:0;padding:10px 14px;">Envoyer</button>
+            <input id="chat-input" name="message" type="text" placeholder="Écrire un message..." style="flex:1;min-width:0;padding:.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);" autocomplete="off" <?= $isClosed ? 'disabled' : '' ?> />
+            <button id="chat-send" type="button" class="submit-btn" style="width:auto;min-width:88px;flex-shrink:0;padding:10px 14px;" <?= $isClosed ? 'disabled aria-disabled="true"' : '' ?>>Envoyer</button>
           </form>
         </div>
       </div>

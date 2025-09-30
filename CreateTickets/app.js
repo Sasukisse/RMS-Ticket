@@ -4,6 +4,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const title     = document.querySelector("#title");
   const desc      = document.querySelector("#description");
   const counter   = document.querySelector("#descCounter");
+  // placeholders for dynamic error insertion (no static elements in DOM)
+  let hasTriedSubmit = false;
   const category  = document.querySelector("#category");
   const typeInputs= document.querySelectorAll('input[name="type"]');
   const submitBtn = document.querySelector("#submitBtn");
@@ -25,15 +27,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // --- Validation en temps réel ---
   const validate = () => {
-    const titleValid = title ? title.value.trim().length >= 4 : true;
-    const descValid  = desc  ? desc.value.trim().length  >= 10 : true;
+    const titleLen = title ? title.value.trim().length : 0;
+    const descLen  = desc  ? desc.value.trim().length  : 0;
+    const titleValid = titleLen >= 4;
+    const descValid  = descLen  >= 10;
     const categoryValid = category ? category.value !== "" : true;
     const typeValid = typeInputs.length ? Array.from(typeInputs).some(i => i.checked) : true;
 
     const isValid = titleValid && descValid && categoryValid && typeValid;
-    if (submitBtn) {
-      submitBtn.disabled = !isValid;
-      submitBtn.style.opacity = isValid ? "1" : "0.6";
+    // Ne pas désactiver le bouton: on veut laisser l'utilisateur cliquer
+    if (submitBtn) submitBtn.style.opacity = isValid ? "1" : "1";
+
+    if (hasTriedSubmit) {
+      markField(title, titleValid, "Le titre doit contenir au moins 4 caractères.");
+      markField(desc,  descValid,  "La description doit contenir au moins 10 caractères.");
     }
     return isValid;
   };
@@ -80,11 +87,41 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // --- Soumission du formulaire ---
+  function getOrCreateError(el){
+    if (!el) return null;
+    let n = el.parentElement.querySelector('.error-hint');
+    if (!n){
+      n = document.createElement('div');
+      n.className = 'error-hint';
+      el.parentElement.appendChild(n);
+    }
+    return n;
+  }
+
+  function markField(el, valid, msg){
+    if (!el) return;
+    const err = getOrCreateError(el);
+    if (valid){
+      el.classList.remove('input-error');
+      if (err) err.textContent = '';
+    } else {
+      el.classList.add('input-error');
+      if (err) err.textContent = msg;
+    }
+  }
+
   if (form) {
     form.addEventListener("submit", (e) => {
-      if (!validate()) {
+      hasTriedSubmit = true;
+      const ok = validate();
+      if (!ok) {
         e.preventDefault();
-        showNotification("Veuillez remplir tous les champs obligatoires.", "error");
+        const msgs = [];
+        if (title && title.value.trim().length < 4) msgs.push("Le titre doit contenir au moins 4 caractères.");
+        if (desc && desc.value.trim().length < 10) msgs.push("La description doit contenir au moins 10 caractères.");
+        if (category && !category.value) msgs.push("La catégorie est obligatoire.");
+        if (typeInputs.length && !Array.from(typeInputs).some(i=>i.checked)) msgs.push("Le type est obligatoire.");
+        showNotification(msgs.join("\n"), "error");
         return;
       }
       if (submitBtn) {
