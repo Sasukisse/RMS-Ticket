@@ -73,9 +73,6 @@ include '../Database/connection.php';
 
     <?php else: ?>
         <a href="../Login/login.php" class="btn btn-primary">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M21 12H9"/>
-            </svg>
             Se connecter
         </a>
     <?php endif; ?>
