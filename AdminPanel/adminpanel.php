@@ -227,6 +227,7 @@ switch ($action) {
             $op = $_POST['op'] ?? '';
             if ($op === 'add_response') ticket_add_response($ticket_id);
             if ($op === 'update_status') ticket_update_status_direct($ticket_id);
+            if ($op === 'update_priority') ticket_update_priority_direct($ticket_id);
             header("Location: ?action=ticket_detail&id=$ticket_id"); exit;
         }
         $ticket = ticket_get_detail($ticket_id);
@@ -497,6 +498,23 @@ function ticket_update_status_direct($ticket_id): void {
     $stmt->execute();
     
     log_admin_action('ticket_status_update', "Ticket ID: $ticket_id, Nouveau statut: $new_status");
+}
+
+function ticket_update_priority_direct($ticket_id): void {
+    $conn = getConnection();
+    $new_priority = $_POST['priority'] ?? '';
+    
+    // Valider que la priorité est une valeur autorisée
+    $allowed_priorities = ['low', 'medium', 'high', 'urgent'];
+    if (!in_array($new_priority, $allowed_priorities)) {
+        return;
+    }
+    
+    $stmt = $conn->prepare('UPDATE tickets SET priority = ?, updated_at = NOW() WHERE id = ?');
+    $stmt->bind_param('si', $new_priority, $ticket_id);
+    $stmt->execute();
+    
+    log_admin_action('ticket_priority_update', "Ticket ID: $ticket_id, Nouvelle priorité: $new_priority");
 }
 
 // =========================
@@ -1590,6 +1608,18 @@ function ticket_detail_view($ticket, $responses): string {
                             <option value="in_progress" <?= $ticket['status'] === 'in_progress' ? 'selected' : '' ?>>En cours</option>
                             <option value="resolved" <?= $ticket['status'] === 'resolved' ? 'selected' : '' ?>>Résolu</option>
                             <option value="closed" <?= $ticket['status'] === 'closed' ? 'selected' : '' ?>>Fermé</option>
+                        </select>
+                        </div>
+                    </form>
+                    <form method="POST" style="display: inline;">
+                                <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                                <input type="hidden" name="op" value="update_priority">
+                                <div class="select-wrapper">
+                                <select name="priority" onchange="this.form.submit()" class="input" data-custom="true">
+                            <option value="low" <?= $ticket['priority'] === 'low' ? 'selected' : '' ?>>Faible</option>
+                            <option value="medium" <?= $ticket['priority'] === 'medium' ? 'selected' : '' ?>>Moyenne</option>
+                            <option value="high" <?= $ticket['priority'] === 'high' ? 'selected' : '' ?>>Élevée</option>
+                            <option value="urgent" <?= $ticket['priority'] === 'urgent' ? 'selected' : '' ?>>Urgente</option>
                         </select>
                         </div>
                     </form>
