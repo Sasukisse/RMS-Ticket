@@ -195,9 +195,9 @@ function status_badge($s) {
             <div style="color:var(--muted);">Chargement des messages…</div>
           </div>
 
-          <form id="chat-form" style="display:flex;gap:.5rem;margin-top:.6rem;align-items:center;" onsubmit="return false;">
-            <input id="chat-input" name="message" type="text" placeholder="Écrire un message..." style="flex:1;min-width:0;padding:.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);" autocomplete="off" <?= $isClosed ? 'disabled' : '' ?> />
-            <button id="chat-send" type="button" class="submit-btn" style="width:auto;min-width:88px;flex-shrink:0;padding:10px 14px;" <?= $isClosed ? 'disabled aria-disabled="true"' : '' ?>>Envoyer</button>
+          <form id="chat-form" style="display:flex;gap:.5rem;margin-top:.6rem;align-items:stretch;" onsubmit="return false;">
+            <input id="chat-input" name="message" type="text" placeholder="Écrire un message..." style="flex:1;min-width:0;padding:.6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.04);color:inherit;" autocomplete="off" <?= $isClosed ? 'disabled' : '' ?> />
+            <button id="chat-send" type="button" class="submit-btn" style="width:auto;min-width:88px;flex-shrink:0;padding:.6rem 14px;display:flex;align-items:center;justify-content:center;" <?= $isClosed ? 'disabled aria-disabled="true"' : '' ?>>Envoyer</button>
           </form>
         </div>
       </div>
