@@ -196,8 +196,8 @@ function status_badge($s) {
           </div>
 
           <form id="chat-form" style="display:flex;gap:.5rem;margin-top:.6rem;align-items:stretch;" onsubmit="return false;">
-            <input id="chat-input" name="message" type="text" placeholder="Écrire un message..." style="flex:1;min-width:0;padding:.4rem .6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.04);color:inherit;font-size:.95rem;" autocomplete="off" <?= $isClosed ? 'disabled' : '' ?> />
-            <button id="chat-send" type="button" class="submit-btn" style="width:auto;min-width:88px;flex-shrink:0;padding:.4rem 14px;display:flex;align-items:center;justify-content:center;" <?= $isClosed ? 'disabled aria-disabled="true"' : '' ?>>Envoyer</button>
+            <input id="chat-input" name="message" type="text" placeholder="Écrire un message..." style="flex:1;min-width:0;padding:.7rem .6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.04);color:inherit;font-size:.95rem;line-height:1.4;" autocomplete="off" <?= $isClosed ? 'disabled' : '' ?> />
+            <button id="chat-send" type="button" class="submit-btn" style="width:auto;min-width:100px;flex-shrink:0;padding:.7rem 20px;display:flex;align-items:center;justify-content:center;font-size:.95rem;" <?= $isClosed ? 'disabled aria-disabled="true"' : '' ?>>Envoyer</button>
           </form>
         </div>
       </div>
