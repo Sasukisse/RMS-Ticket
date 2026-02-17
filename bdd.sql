@@ -197,9 +197,6 @@ CREATE TABLE `tickets` (
 -- Déchargement des données de la table `tickets`
 --
 
-INSERT INTO `tickets` (`id`, `user_id`, `assigned_to`, `title`, `description`, `category`, `type`, `priority`, `status`, `created_at`, `updated_at`, `closed_at`, `resolution_notes`) VALUES
-(1, 1, NULL, 'dqsdsqds', 'qsdsqdsqdsqdsq', 'logiciel', 'incident', 'medium', 'open', '2025-09-16 17:50:42', '2025-09-16 17:58:56', NULL, NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -252,9 +249,6 @@ CREATE TABLE `users` (
 -- Déchargement des données de la table `users`
 --
 
-INSERT INTO `users` (`id`, `username`, `nom`, `prenom`, `email`, `password_hash`, `numero_telephone`, `droit`, `created_at`) VALUES
-(1, 'mehdi', 'Benali', 'Mehdi', 'mehdi@admin.com', '$2y$10$SBvx/fLk4EGQYrXgVwMEl.T7GBfHa5eN72YRJJ7upoPjtZ9SA72B.', '+33123456789', 2, '2025-09-16 08:42:48');
-
 -- --------------------------------------------------------
 
 --
@@ -271,9 +265,6 @@ CREATE TABLE `user_roles` (
 --
 -- Déchargement des données de la table `user_roles`
 --
-
-INSERT INTO `user_roles` (`user_id`, `role_id`, `assigned_at`, `assigned_by`) VALUES
-(1, 1, '2025-09-16 08:47:49', NULL);
 
 -- --------------------------------------------------------
 
@@ -405,7 +396,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT pour la table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- AUTO_INCREMENT pour la table `ticket_comments`
@@ -423,7 +414,7 @@ ALTER TABLE `ticket_responses`
 -- AUTO_INCREMENT pour la table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- Contraintes pour les tables déchargées
