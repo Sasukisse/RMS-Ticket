@@ -1580,25 +1580,18 @@ function ticket_detail_view($ticket, $responses): string {
         </div>
         
         <!-- Chat des réponses -->
-        <div class="card chat-card" style="display: flex; flex-direction: column; height: auto;">
-            <div class="card-header">
-                <h3><i class="fas fa-comments"></i> Discussion (<?= count($responses) ?? 0 ?>)</h3>
-            </div>
-            <div class="card-content" style="flex: 1; display: flex; flex-direction: column; padding: 0;">
-                <!-- Chat Box -->
-                <div id="admin-chat-box" style="border: 1px solid rgba(255,255,255,0.07); padding: 0.8rem; height: 350px; overflow-y: auto; background: rgba(0,0,0,0.03); flex: 1;">
-                    <div style="color: var(--muted);">Chargement des messages…</div>
-                </div>
-                
-                <!-- Input area -->
-                <div style="border-top: 1px solid rgba(255,255,255,0.07); padding: 1rem; background: rgba(255,255,255,0.02);">
-                    <form id="admin-chat-form" style="display: flex; gap: 0.5rem; align-items: center;" onsubmit="return false;">
-                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                        <input id="admin-chat-input" name="message" type="text" placeholder="Écrire une réponse..." style="flex: 1; min-width: 0; padding: 0.6rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); background: var(--input-bg); color: var(--text);" autocomplete="off" />
-                        <button id="admin-chat-send" type="button" class="submit-btn" style="width: auto; min-width: 88px; flex-shrink: 0; padding: 10px 14px;">Envoyer</button>
-                    </form>
-                </div>
-            </div>
+        <!-- Chat du ticket -->
+        <div id="ticket-chat" style="margin-top:1.25rem;">
+          <h3>Discussion</h3>
+          <div id="admin-chat-box" style="border:1px solid rgba(255,255,255,0.07);padding:.8rem;height:300px;overflow:auto;background:rgba(0,0,0,0.03);">
+            <!-- messages injectés ici -->
+            <div style="color:var(--muted);">Chargement des messages…</div>
+          </div>
+
+          <form id="admin-chat-form" style="display:flex;gap:.5rem;margin-top:.6rem;align-items:stretch;" onsubmit="return false;">
+            <input id="admin-chat-input" name="message" type="text" placeholder="Écrire une réponse..." style="flex:1;min-width:0;padding:.7rem .6rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.04);color:inherit;font-size:.95rem;line-height:1.4;" autocomplete="off" />
+            <button id="admin-chat-send" type="button" class="submit-btn" style="width:auto;min-width:100px;flex-shrink:0;padding:.7rem 20px;display:flex;align-items:center;justify-content:center;font-size:.95rem;">Envoyer</button>
+          </form>
         </div>
         
         <!-- Bouton Retour à la liste -->
@@ -1612,7 +1605,6 @@ function ticket_detail_view($ticket, $responses): string {
     <script>
     (function(){
         const ticketId = <?= (int)$ticket['id'] ?>;
-        const csrfToken = '<?= csrf_token() ?>';
         const box = document.getElementById('admin-chat-box');
         const input = document.getElementById('admin-chat-input');
         const sendBtn = document.getElementById('admin-chat-send');
@@ -1630,16 +1622,15 @@ function ticket_detail_view($ticket, $responses): string {
             if (!Array.isArray(messages)) return;
             box.innerHTML = messages.map(m=>{
                 const who = m.username ? esc(m.username) : ('ID:'+m.sender_id);
-                const time = new Date(m.created_at).toLocaleString('fr-FR');
-                const badge = m.is_admin_response ? '<span style="display: inline-block; margin-left: 0.4rem; padding: 2px 8px; background: var(--info); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">ADMIN</span>' : '';
-                return '<div style="margin-bottom: 0.8rem; padding: 0.6rem; background: rgba(99, 102, 241, 0.1); border-left: 3px solid var(--primary); border-radius: 4px;"><strong>'+who+'</strong>'+badge+' <small style="color: var(--muted); margin-left: 0.4rem;">'+time+'</small><div style="margin-top: 0.25rem; color: var(--text);">'+esc(m.message)+'</div></div>';
+                const time = new Date(m.created_at).toLocaleString();
+                return '<div style="margin-bottom:.6rem;"><strong>'+who+'</strong> <small style="color:#777;margin-left:.4rem;">'+time+'</small><div style="margin-top:.25rem;">'+esc(m.message)+'</div></div>';
             }).join('');
             box.scrollTop = box.scrollHeight;
         }
 
         async function fetchMessages(){
             try{
-                const res = await fetch('../Tickets/chat_api.php?ticket_id='+ticketId);
+                const res = await fetch('Tickets/chat_api.php?ticket_id='+ticketId);
                 if (!res.ok) return;
                 const data = await res.json();
                 render(data);
@@ -1653,22 +1644,21 @@ function ticket_detail_view($ticket, $responses): string {
                 const params = new URLSearchParams();
                 params.append('ticket_id', ticketId);
                 params.append('message', v);
-                const res = await fetch('../Tickets/chat_api.php', { method: 'POST', body: params });
+                const res = await fetch('Tickets/chat_api.php', { method: 'POST', body: params });
                 if (!res.ok) {
                     alert('Erreur lors de l\'envoi');
                     return;
                 }
                 input.value = '';
                 fetchMessages();
-            }catch(e){console.error(e); alert('Erreur');}
+            }catch(e){console.error(e)}
         }
 
         sendBtn.addEventListener('click', sendMessage);
         input.addEventListener('keydown', function(e){ if (e.key === 'Enter') sendMessage(); });
 
-        // Charger les messages au démarrage
+        // polling régulier
         fetchMessages();
-        // Polling régulier toutes les 2.5 secondes
         setInterval(fetchMessages, 2500);
     })();
     </script>
