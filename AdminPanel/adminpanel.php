@@ -262,7 +262,8 @@ switch ($action) {
             header('Location: ?action=permissions'); exit;
         }
         $roles = permissions_list();
-        page_layout('Gestion des permissions', permissions_view($roles));
+        $users_by_role = users_by_role();
+        page_layout('Gestion des permissions', permissions_view($roles, $users_by_role));
         break;
         
     case 'logs':
@@ -615,12 +616,38 @@ function permissions_list(): array {
                 WHEN droit = 0 THEN 'Utilisateur standard'
                 WHEN droit = 1 THEN 'Administrateur'
                 WHEN droit = 2 THEN 'Super administrateur'
+                WHEN droit = 3 THEN 'Technicien'
                 ELSE 'Rôle personnalisé'
             END as role_name
         FROM users 
         GROUP BY droit 
         ORDER BY droit DESC
     ")->fetch_all(MYSQLI_ASSOC);
+}
+
+function users_by_role(): array {
+    $conn = getConnection();
+    $roles = [
+        2 => 'Super Administrateur',
+        1 => 'Administrateur',
+        3 => 'Technicien',
+        0 => 'Utilisateur'
+    ];
+    
+    $result = [];
+    foreach ($roles as $droit => $role_name) {
+        $stmt = $conn->prepare("SELECT * FROM users WHERE droit = ? ORDER BY nom, prenom");
+        $stmt->bind_param('i', $droit);
+        $stmt->execute();
+        $users = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        $result[$droit] = [
+            'name' => $role_name,
+            'users' => $users,
+            'count' => count($users)
+        ];
+    }
+    
+    return $result;
 }
 
 function permissions_update_role(): void {
@@ -1278,7 +1305,7 @@ function users_view($users, $search): string {
 // =========================
 // VUES - PERMISSIONS
 // =========================
-function permissions_view($roles): string {
+function permissions_view($roles, $users_by_role = []): string {
     ob_start();
 ?>
     <div class="card">
@@ -1315,6 +1342,47 @@ function permissions_view($roles): string {
                             }
                             ?>
                         </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Utilisateurs par rôle -->
+    <div class="card">
+        <div class="card-header">
+            <h3><i class="fas fa-list"></i> Utilisateurs par rôle</h3>
+        </div>
+        <div class="card-content">
+            <div class="roles-users-grid">
+                <?php foreach ($users_by_role as $droit => $role_data): ?>
+                <div class="role-users-card">
+                    <div class="role-users-header">
+                        <h4><?= e($role_data['name']) ?></h4>
+                        <span class="badge role-<?= $droit ?>"><?= $role_data['count'] ?></span>
+                    </div>
+                    <div class="role-users-content">
+                        <?php if (empty($role_data['users'])): ?>
+                            <p class="empty-state">Aucun utilisateur</p>
+                        <?php else: ?>
+                            <ul class="users-list">
+                                <?php foreach ($role_data['users'] as $user): ?>
+                                <li class="user-item">
+                                    <div class="user-name">
+                                        <strong><?= e($user['prenom'] . ' ' . $user['nom']) ?></strong>
+                                        <?php if ($user['id'] == $_SESSION['user_id']): ?>
+                                            <span class="badge badge-info">Vous</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="user-email"><?= e($user['email']) ?></div>
+                                    <?php if ($user['numero_telephone']): ?>
+                                    <div class="user-phone"><i class="fas fa-phone"></i> <?= e($user['numero_telephone']) ?></div>
+                                    <?php endif; ?>
+                                </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endforeach; ?>

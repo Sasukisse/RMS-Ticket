@@ -1098,6 +1098,138 @@ select option {
     display: none !important;
 }
 
+/* Permissions Grid */
+.permissions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.permission-card {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-stroke);
+    border-radius: var(--radius-sm);
+    padding: 1.5rem;
+    backdrop-filter: blur(8px);
+    transition: all 0.3s ease;
+}
+
+.permission-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15);
+}
+
+.permission-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-stroke);
+}
+
+.permission-header h4 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.user-count {
+    background: var(--primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.permission-level,
+.permission-description {
+    margin: 0.75rem 0;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.permission-description {
+    color: var(--muted);
+}
+
+/* Roles Users Grid */
+.roles-users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.role-users-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-sm);
+    padding: 1.5rem;
+    backdrop-filter: blur(8px);
+}
+
+.role-users-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.role-users-header h4 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.users-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.user-item {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: rgba(99, 102, 241, 0.05);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.user-item:hover {
+    background: rgba(99, 102, 241, 0.1);
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateX(4px);
+}
+
+.user-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.user-email {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 0.25rem;
+    word-break: break-word;
+}
+
+.user-phone {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.empty-state {
+    color: var(--muted);
+    text-align: center;
+    padding: 2rem 1rem;
+    font-style: italic;
+}
+
 /* Also hide any standalone previous/next controls often used */
 .prev, .next, .page-prev, .page-next {
     display: none !important;
