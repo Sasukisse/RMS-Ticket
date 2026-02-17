@@ -130,7 +130,8 @@ function initializeConfirmations() {
 // FILTRES EN TEMPS RÉEL
 // =========================
 function initializeFilters() {
-    const searchInputs = document.querySelectorAll('input[name="search"], input[name="user_search"]');
+    // Seulement pour les filtres temps réel des tickets, pas pour user_search
+    const searchInputs = document.querySelectorAll('input[name="search"]');
     
     searchInputs.forEach(input => {
         let debounceTimer;
