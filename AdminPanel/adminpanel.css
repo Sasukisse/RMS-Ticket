@@ -305,6 +305,40 @@ body {
     font-size: 12px;
 }
 
+/* Submit Button */
+.submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(79, 70, 229, 0.35);
+    transition: 0.2s;
+}
+
+.submit-btn:hover:not(:disabled) {
+    filter: brightness(1.05);
+    box-shadow: 0 12px 30px rgba(79, 70, 229, 0.45);
+    transform: translateY(-1px);
+}
+
+.submit-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 /* Forms */
 .input {
     width: 100%;
