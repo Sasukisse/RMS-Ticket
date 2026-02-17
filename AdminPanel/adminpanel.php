@@ -767,6 +767,7 @@ function page_layout(string $title, string $content, array $opts = []): void {
                             switch($current_user['droit']) {
                                 case 2: echo 'Super Admin'; break;
                                 case 1: echo 'Admin'; break;
+                                case 3: echo 'Technicien'; break;
                                 default: echo 'Utilisateur'; break;
                             }
                             ?>
@@ -1095,6 +1096,7 @@ function users_view($users, $search): string {
                                         switch($user['droit']) {
                                             case 2: echo 'Super Admin'; break;
                                             case 1: echo 'Admin'; break;
+                                            case 3: echo 'Technicien'; break;
                                             default: echo 'Utilisateur'; break;
                                         }
                                         ?>
@@ -1173,6 +1175,7 @@ function users_view($users, $search): string {
                             <label>Rôle</label>
                             <select name="droit" class="input">
                                 <option value="0">Utilisateur</option>
+                                <option value="3">Technicien</option>
                                 <option value="1">Administrateur</option>
                                 <option value="2">Super Administrateur</option>
                             </select>
@@ -1226,6 +1229,7 @@ function users_view($users, $search): string {
                             <label>Rôle</label>
                             <select name="droit" id="edit_droit" class="input">
                                 <option value="0">Utilisateur</option>
+                                <option value="3">Technicien</option>
                                 <option value="1">Administrateur</option>
                                 <option value="2">Super Administrateur</option>
                             </select>
@@ -1302,6 +1306,9 @@ function permissions_view($roles): string {
                                 case 1:
                                     echo "Accès administrateur : gestion des tickets et consultation des logs";
                                     break;
+                                case 3:
+                                    echo "Accès technicien : gestion des tickets assignés et support utilisateur";
+                                    break;
                                 default:
                                     echo "Accès utilisateur standard : création et suivi de ses propres tickets";
                                     break;
@@ -1364,6 +1371,7 @@ function permissions_view($roles): string {
                                             switch($user['droit']) {
                                                 case 2: echo 'Super Admin'; break;
                                                 case 1: echo 'Admin'; break;
+                                                case 3: echo 'Technicien'; break;
                                                 default: echo 'Utilisateur'; break;
                                             }
                                             ?>
@@ -1377,6 +1385,7 @@ function permissions_view($roles): string {
                                             <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
                                             <select name="new_role" class="input input-sm">
                                                 <option value="0" <?= $user['droit'] == 0 ? 'selected' : '' ?>>Utilisateur</option>
+                                                <option value="3" <?= $user['droit'] == 3 ? 'selected' : '' ?>>Technicien</option>
                                                 <option value="1" <?= $user['droit'] == 1 ? 'selected' : '' ?>>Administrateur</option>
                                                 <option value="2" <?= $user['droit'] == 2 ? 'selected' : '' ?>>Super Administrateur</option>
                                             </select>
