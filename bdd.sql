@@ -250,7 +250,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `nom`, `prenom`, `email`, `password_hash`, `numero_telephone`, `droit`, `created_at`) VALUES
-(1, 'Romain', 'Sanjivy', 'Romain', 'sanjivy.romain@gmail.com', '$2y$10$AfNf2zrUVsKvRPV8vs1kmu/PVhdEZBb5hHl3om9l3DBXE9WnRHEma', '0123456789', 2, NOW());
+(1, 'Romain', 'Sanjivy', 'Romain', 'sanjivy.romain@gmail.com', '$2y$10$05f3tMqpNYuxz.IlUo/AIOjofyDJJxNIOiGmfwAjViIV30Sgu5396', '0123456789', 2, NOW());
 
 -- --------------------------------------------------------
 
