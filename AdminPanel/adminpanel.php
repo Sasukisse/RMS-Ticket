@@ -1579,64 +1579,99 @@ function ticket_detail_view($ticket, $responses): string {
             </div>
         </div>
         
-        <!-- Réponses existantes -->
-        <?php if (!empty($responses)): ?>
-        <div class="card responses-card">
+        <!-- Chat des réponses -->
+        <div class="card chat-card" style="display: flex; flex-direction: column; height: auto;">
             <div class="card-header">
-                <h3><i class="fas fa-comments"></i> Historique des réponses (<?= count($responses) ?>)</h3>
+                <h3><i class="fas fa-comments"></i> Discussion (<?= count($responses) ?? 0 ?>)</h3>
             </div>
-            <div class="card-content">
-                <div class="responses-list">
-                    <?php foreach ($responses as $response): ?>
-                    <div class="response-item <?= $response['is_admin_response'] ? 'admin-response' : 'user-response' ?>">
-                        <div class="response-header">
-                            <div class="response-author">
-                                <strong><?= e($response['prenom'] . ' ' . $response['nom']) ?></strong>
-                                <?php if ($response['is_admin_response']): ?>
-                                    <span class="badge badge-info">Admin</span>
-                                <?php endif; ?>
-                            </div>
-                            <div class="response-date">
-                                <?= date('d/m/Y à H:i', strtotime($response['created_at'])) ?>
-                            </div>
-                        </div>
-                        <div class="response-content">
-                            <?= nl2br(e($response['response_text'])) ?>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
+            <div class="card-content" style="flex: 1; display: flex; flex-direction: column; padding: 0;">
+                <!-- Chat Box -->
+                <div id="admin-chat-box" style="border: 1px solid rgba(255,255,255,0.07); padding: 0.8rem; height: 350px; overflow-y: auto; background: rgba(0,0,0,0.03); flex: 1;">
+                    <div style="color: var(--muted);">Chargement des messages…</div>
+                </div>
+                
+                <!-- Input area -->
+                <div style="border-top: 1px solid rgba(255,255,255,0.07); padding: 1rem; background: rgba(255,255,255,0.02);">
+                    <form id="admin-chat-form" style="display: flex; gap: 0.5rem; align-items: center;" onsubmit="return false;">
+                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                        <input id="admin-chat-input" name="message" type="text" placeholder="Écrire une réponse..." style="flex: 1; min-width: 0; padding: 0.6rem; border-radius: 6px; border: 1px solid rgba(255,255,255,0.06); background: var(--input-bg); color: var(--text);" autocomplete="off" />
+                        <button id="admin-chat-send" type="button" class="submit-btn" style="width: auto; min-width: 88px; flex-shrink: 0; padding: 10px 14px;">Envoyer</button>
+                    </form>
                 </div>
             </div>
         </div>
-        <?php endif; ?>
         
-        <!-- Formulaire de réponse -->
-        <div class="card response-form-card">
-            <div class="card-header">
-                <h3><i class="fas fa-reply"></i> Ajouter une réponse</h3>
-            </div>
-            <div class="card-content">
-                <form method="POST">
-                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                    <input type="hidden" name="op" value="add_response">
-                    
-                    <div class="form-group">
-                        <label for="response_text">Votre réponse :</label>
-                        <textarea name="response_text" id="response_text" rows="6" class="input" placeholder="Tapez votre réponse ici..." required></textarea>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i> Envoyer la réponse
-                        </button>
-                        <a href="?action=tickets" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Retour à la liste
-                        </a>
-                    </div>
-                </form>
-            </div>
+        <!-- Bouton Retour à la liste -->
+        <div style="margin-top: 1.5rem; display: flex; justify-content: center;">
+            <a href="?action=tickets" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-arrow-left"></i> Retour à la liste
+            </a>
         </div>
     </div>
+    
+    <script>
+    (function(){
+        const ticketId = <?= (int)$ticket['id'] ?>;
+        const csrfToken = '<?= csrf_token() ?>';
+        const box = document.getElementById('admin-chat-box');
+        const input = document.getElementById('admin-chat-input');
+        const sendBtn = document.getElementById('admin-chat-send');
+
+        function esc(s){
+            return String(s)
+                .replace(/&/g,'&amp;')
+                .replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;')
+                .replace(/'/g,'&#039;');
+        }
+
+        function render(messages){
+            if (!Array.isArray(messages)) return;
+            box.innerHTML = messages.map(m=>{
+                const who = m.username ? esc(m.username) : ('ID:'+m.sender_id);
+                const time = new Date(m.created_at).toLocaleString('fr-FR');
+                const badge = m.is_admin_response ? '<span style="display: inline-block; margin-left: 0.4rem; padding: 2px 8px; background: var(--info); color: white; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">ADMIN</span>' : '';
+                return '<div style="margin-bottom: 0.8rem; padding: 0.6rem; background: rgba(99, 102, 241, 0.1); border-left: 3px solid var(--primary); border-radius: 4px;"><strong>'+who+'</strong>'+badge+' <small style="color: var(--muted); margin-left: 0.4rem;">'+time+'</small><div style="margin-top: 0.25rem; color: var(--text);">'+esc(m.message)+'</div></div>';
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function fetchMessages(){
+            try{
+                const res = await fetch('../Tickets/chat_api.php?ticket_id='+ticketId);
+                if (!res.ok) return;
+                const data = await res.json();
+                render(data);
+            }catch(e){console.error(e)}
+        }
+
+        async function sendMessage(){
+            const v = input.value.trim();
+            if (!v) return;
+            try{
+                const params = new URLSearchParams();
+                params.append('ticket_id', ticketId);
+                params.append('message', v);
+                const res = await fetch('../Tickets/chat_api.php', { method: 'POST', body: params });
+                if (!res.ok) {
+                    alert('Erreur lors de l\'envoi');
+                    return;
+                }
+                input.value = '';
+                fetchMessages();
+            }catch(e){console.error(e); alert('Erreur');}
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        input.addEventListener('keydown', function(e){ if (e.key === 'Enter') sendMessage(); });
+
+        // Charger les messages au démarrage
+        fetchMessages();
+        // Polling régulier toutes les 2.5 secondes
+        setInterval(fetchMessages, 2500);
+    })();
+    </script>
 <?php
     return ob_get_clean();
 }
