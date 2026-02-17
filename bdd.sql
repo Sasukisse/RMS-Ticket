@@ -249,6 +249,9 @@ CREATE TABLE `users` (
 -- Déchargement des données de la table `users`
 --
 
+INSERT INTO `users` (`id`, `username`, `nom`, `prenom`, `email`, `password_hash`, `numero_telephone`, `droit`, `created_at`) VALUES
+(1, 'Romain', 'Sanjivy', 'Romain', 'sanjivy.romain@gmail.com', '$2y$10$AfNf2zrUVsKvRPV8vs1kmu/PVhdEZBb5hHl3om9l3DBXE9WnRHEma', '0123456789', 2, NOW());
+
 -- --------------------------------------------------------
 
 --
@@ -265,6 +268,9 @@ CREATE TABLE `user_roles` (
 --
 -- Déchargement des données de la table `user_roles`
 --
+
+INSERT INTO `user_roles` (`user_id`, `role_id`, `assigned_at`, `assigned_by`) VALUES
+(1, 1, NOW(), NULL);
 
 -- --------------------------------------------------------
 
@@ -414,7 +420,7 @@ ALTER TABLE `ticket_responses`
 -- AUTO_INCREMENT pour la table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Contraintes pour les tables déchargées
