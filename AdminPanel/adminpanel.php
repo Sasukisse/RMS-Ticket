@@ -3,7 +3,7 @@ session_start();
 require_once '../Database/config.php';
 
 // Vérifier si l'utilisateur est connecté et a les droits admin
-if (!isset($_SESSION['user_id']) || $_SESSION['droit'] < 1) {
+if (!isset($_SESSION['user_id']) || $_SESSION['droit'] < 2) {
     header('Location: ../Login/login.php');
     exit();
 }
@@ -78,7 +78,7 @@ function current_user(): ?array {
 
 function require_admin(): void {
     $user = current_user();
-    if (!$user || $user['droit'] < 1) {
+    if (!$user || $user['droit'] < 2) {
         http_response_code(403);
         exit('Accès refusé - Droits administrateur requis');
     }
@@ -88,7 +88,7 @@ function require_super_admin(): void {
     $user = current_user();
     if (!$user || $user['droit'] < 2) {
         http_response_code(403);
-        exit('Accès refusé - Droits super administrateur requis');
+        exit('Accès refusé - Droits administrateur requis');
     }
 }
 
@@ -560,7 +560,7 @@ function users_update(): void {
     
     // Vérifier les permissions pour modifier les droits
     $current_user = current_user();
-    if ($droit != $_POST['original_droit'] && $current_user['droit'] < 2) {
+    if ($droit != $_POST['original_droit'] && $current_user['droit'] < 3) {
         exit('Seuls les super administrateurs peuvent modifier les droits');
     }
     
@@ -614,9 +614,8 @@ function permissions_list(): array {
             COUNT(*) as user_count,
             CASE 
                 WHEN droit = 0 THEN 'Utilisateur standard'
-                WHEN droit = 1 THEN 'Administrateur'
-                WHEN droit = 2 THEN 'Super administrateur'
-                WHEN droit = 3 THEN 'Technicien'
+                WHEN droit = 1 THEN 'Technicien'
+                WHEN droit = 2 THEN 'Administrateur'
                 ELSE 'Rôle personnalisé'
             END as role_name
         FROM users 
@@ -628,9 +627,8 @@ function permissions_list(): array {
 function users_by_role(): array {
     $conn = getConnection();
     $roles = [
-        2 => 'Super Administrateur',
-        1 => 'Administrateur',
-        3 => 'Technicien',
+        2 => 'Administrateur',
+        1 => 'Technicien',
         0 => 'Utilisateur'
     ];
     
@@ -792,9 +790,8 @@ function page_layout(string $title, string $content, array $opts = []): void {
                         <span class="user-role">
                             <?php
                             switch($current_user['droit']) {
-                                case 2: echo 'Super Admin'; break;
-                                case 1: echo 'Admin'; break;
-                                case 3: echo 'Technicien'; break;
+                                case 2: echo 'Admin'; break;
+                                case 1: echo 'Technicien'; break;
                                 default: echo 'Utilisateur'; break;
                             }
                             ?>
@@ -1121,9 +1118,8 @@ function users_view($users, $search): string {
                                     <span class="badge role-<?= $user['droit'] ?>">
                                         <?php
                                         switch($user['droit']) {
-                                            case 2: echo 'Super Admin'; break;
-                                            case 1: echo 'Admin'; break;
-                                            case 3: echo 'Technicien'; break;
+                                            case 2: echo 'Admin'; break;
+                                            case 1: echo 'Technicien'; break;
                                             default: echo 'Utilisateur'; break;
                                         }
                                         ?>
@@ -1202,9 +1198,8 @@ function users_view($users, $search): string {
                             <label>Rôle</label>
                             <select name="droit" class="input">
                                 <option value="0">Utilisateur</option>
-                                <option value="3">Technicien</option>
-                                <option value="1">Administrateur</option>
-                                <option value="2">Super Administrateur</option>
+                                <option value="1">Technicien</option>
+                                <option value="2">Administrateur</option>
                             </select>
                         </div>
                     </div>
@@ -1256,9 +1251,8 @@ function users_view($users, $search): string {
                             <label>Rôle</label>
                             <select name="droit" id="edit_droit" class="input">
                                 <option value="0">Utilisateur</option>
-                                <option value="3">Technicien</option>
-                                <option value="1">Administrateur</option>
-                                <option value="2">Super Administrateur</option>
+                                <option value="1">Technicien</option>
+                                <option value="2">Administrateur</option>
                             </select>
                         </div>
                         <?php endif; ?>
@@ -1331,9 +1325,6 @@ function permissions_view($roles, $users_by_role = []): string {
                                     echo "Accès complet : gestion des utilisateurs, permissions, tickets et logs";
                                     break;
                                 case 1:
-                                    echo "Accès administrateur : gestion des tickets et consultation des logs";
-                                    break;
-                                case 3:
                                     echo "Accès technicien : gestion des tickets assignés et support utilisateur";
                                     break;
                                 default:
@@ -1437,9 +1428,8 @@ function permissions_view($roles, $users_by_role = []): string {
                                         <span class="badge role-<?= $user['droit'] ?>">
                                             <?php
                                             switch($user['droit']) {
-                                                case 2: echo 'Super Admin'; break;
-                                                case 1: echo 'Admin'; break;
-                                                case 3: echo 'Technicien'; break;
+                                                case 2: echo 'Admin'; break;
+                                                case 1: echo 'Technicien'; break;
                                                 default: echo 'Utilisateur'; break;
                                             }
                                             ?>
@@ -1453,9 +1443,8 @@ function permissions_view($roles, $users_by_role = []): string {
                                             <input type="hidden" name="user_id" value="<?= $user['id'] ?>">
                                             <select name="new_role" class="input input-sm">
                                                 <option value="0" <?= $user['droit'] == 0 ? 'selected' : '' ?>>Utilisateur</option>
-                                                <option value="3" <?= $user['droit'] == 3 ? 'selected' : '' ?>>Technicien</option>
-                                                <option value="1" <?= $user['droit'] == 1 ? 'selected' : '' ?>>Administrateur</option>
-                                                <option value="2" <?= $user['droit'] == 2 ? 'selected' : '' ?>>Super Administrateur</option>
+                                                <option value="1" <?= $user['droit'] == 1 ? 'selected' : '' ?>>Technicien</option>
+                                                <option value="2" <?= $user['droit'] == 2 ? 'selected' : '' ?>>Administrateur</option>
                                             </select>
                                             <button type="submit" class="btn btn-sm btn-primary">Modifier</button>
                                         </form>
