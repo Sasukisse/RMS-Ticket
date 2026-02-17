@@ -1630,7 +1630,7 @@ function ticket_detail_view($ticket, $responses): string {
 
         async function fetchMessages(){
             try{
-                const res = await fetch('Tickets/chat_api.php?ticket_id='+ticketId);
+                const res = await fetch('../Tickets/chat_api.php?ticket_id='+ticketId);
                 if (!res.ok) return;
                 const data = await res.json();
                 render(data);
@@ -1644,7 +1644,7 @@ function ticket_detail_view($ticket, $responses): string {
                 const params = new URLSearchParams();
                 params.append('ticket_id', ticketId);
                 params.append('message', v);
-                const res = await fetch('Tickets/chat_api.php', { method: 'POST', body: params });
+                const res = await fetch('../Tickets/chat_api.php', { method: 'POST', body: params });
                 if (!res.ok) {
                     alert('Erreur lors de l\'envoi');
                     return;
