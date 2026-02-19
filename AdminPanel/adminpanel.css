@@ -824,9 +824,10 @@ select option {
 
 .modal.active {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     padding: 2rem;
+    overflow-y: auto;
 }
 
 .modal-content {
@@ -837,8 +838,7 @@ select option {
     box-shadow: var(--shadow-strong);
     max-width: 600px;
     width: 100%;
-    max-height: 80vh;
-    overflow-y: auto;
+    margin: auto 0;
 }
 
 .modal-header {
@@ -1259,7 +1259,6 @@ select option {
     
     .modal-content {
         margin: 1rem;
-        max-height: calc(100vh - 2rem);
     }
     
     .form-grid {
