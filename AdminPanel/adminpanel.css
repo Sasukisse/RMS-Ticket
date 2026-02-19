@@ -736,6 +736,23 @@ select option {
     display: block;
 }
 
+/* Badges type ticket */
+.badge.type-incident {
+    background: rgba(249, 115, 22, 0.15);
+    color: #fb923c;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.badge.type-demande {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+/* Aussi via classe directe (dashboard) */
+.badge[class*="type-incident"] { background: rgba(249,115,22,.15); color:#fb923c; border:1px solid rgba(249,115,22,.3); }
+.badge[class*="type-demande"]  { background: rgba(99,102,241,.15); color:#818cf8; border:1px solid rgba(99,102,241,.3); }
+
 /* Barre de statistiques par type */
 .type-stats-bar {
     display: flex;

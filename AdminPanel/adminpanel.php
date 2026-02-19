@@ -973,6 +973,7 @@ function dashboard_view($stats): string {
                                         </div>
                                     </div>
                                     <div class="ticket-badges">
+                                        <span class="badge type-<?= $ticket['type'] ?>"><?= translate_field('type', $ticket['type']) ?></span>
                                         <span class="badge priority-<?= $ticket['priority'] ?>"><?= translate_field('priority', $ticket['priority']) ?></span>
                                         <span class="badge status-<?= $ticket['status'] ?>"><?= translate_field('status', $ticket['status']) ?></span>
                                     </div>
@@ -1005,6 +1006,7 @@ function tickets_table_body(array $rows, string $tab): string {
                 <div class="ticket-description"><?= e(substr($ticket['description'], 0, 100)) ?>...</div>
             </div>
         </td>
+        <td><span class="badge type-<?= $ticket['type'] ?>"><?= translate_field('type', $ticket['type']) ?></span></td>
         <td><?= e($ticket['prenom'] . ' ' . $ticket['nom']) ?></td>
         <td>
             <?php if (!empty($ticket['assigned_prenom'])): ?>
@@ -1149,7 +1151,7 @@ function tickets_view($tickets, $filters): string {
                     <div class="table-responsive no-scrollbar">
                         <table class="table">
                             <thead><tr>
-                                <th>ID</th><th>Titre</th><th>Utilisateur</th><th>Assigné à</th><th>Catégorie</th><th>Priorité</th><th>Statut</th><th>Créé le</th><th>Actions</th>
+                                <th>ID</th><th>Titre</th><th>Type</th><th>Utilisateur</th><th>Assigné à</th><th>Catégorie</th><th>Priorité</th><th>Statut</th><th>Créé le</th><th>Actions</th>
                             </tr></thead>
                             <tbody><?= tickets_table_body($incidents, 'incidents') ?></tbody>
                         </table>
@@ -1186,7 +1188,7 @@ function tickets_view($tickets, $filters): string {
                     <div class="table-responsive no-scrollbar">
                         <table class="table">
                             <thead><tr>
-                                <th>ID</th><th>Titre</th><th>Utilisateur</th><th>Assigné à</th><th>Catégorie</th><th>Priorité</th><th>Statut</th><th>Créé le</th><th>Actions</th>
+                                <th>ID</th><th>Titre</th><th>Type</th><th>Utilisateur</th><th>Assigné à</th><th>Catégorie</th><th>Priorité</th><th>Statut</th><th>Créé le</th><th>Actions</th>
                             </tr></thead>
                             <tbody><?= tickets_table_body($demandes, 'demandes') ?></tbody>
                         </table>
