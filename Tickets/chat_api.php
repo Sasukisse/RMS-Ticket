@@ -6,7 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
-    echo json_encode(['error' => 'Unauthorized']);
+    echo json_encode(['error' => 'Non autorisé']);
     exit;
 }
 
@@ -25,12 +25,12 @@ $check->execute([$ticket_id]);
 $owner = $check->fetchColumn();
 if (!$owner) {
     http_response_code(404);
-    echo json_encode(['error' => 'Ticket not found']);
+    echo json_encode(['error' => 'Ticket non trouvé']);
     exit;
 }
 if ($owner != $user_id && $droit < 1) {
     http_response_code(403);
-    echo json_encode(['error' => 'Forbidden']);
+    echo json_encode(['error' => 'Accès refusé']);
     exit;
 }
 
@@ -134,5 +134,5 @@ if ($method === 'POST') {
 }
 
 http_response_code(405);
-echo json_encode(['error' => 'Method not allowed']);
+echo json_encode(['error' => 'Méthode non autorisée']);
 

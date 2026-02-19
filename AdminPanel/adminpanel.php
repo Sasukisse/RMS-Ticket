@@ -42,6 +42,36 @@ function e(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'); 
 }
 
+// Fonction de traduction des énumérés
+function translate_field(string $field_type, string $value): string {
+    $translations = [
+        'status' => [
+            'open' => 'Ouvert',
+            'in_progress' => 'En cours',
+            'resolved' => 'Résolu',
+            'closed' => 'Fermé'
+        ],
+        'priority' => [
+            'low' => 'Faible',
+            'medium' => 'Moyenne',
+            'high' => 'Élevée',
+            'urgent' => 'Urgente'
+        ],
+        'category' => [
+            'materiel' => 'Matériel',
+            'logiciel' => 'Logiciel',
+            'reseau' => 'Réseau',
+            'autre' => 'Autre'
+        ],
+        'type' => [
+            'incident' => 'Incident',
+            'demande' => 'Demande'
+        ]
+    ];
+    
+    return $translations[$field_type][$value] ?? ucfirst(str_replace('_', ' ', $value));
+}
+
 function now(): string { 
     return (new DateTime('now', new DateTimeZone('Europe/Paris')))->format('Y-m-d H:i:s'); 
 }
@@ -808,7 +838,7 @@ function page_layout(string $title, string $content, array $opts = []): void {
                         <span class="user-role">
                             <?php
                             switch($current_user['droit']) {
-                                case 2: echo 'Admin'; break;
+                                case 2: echo 'Administrateur'; break;
                                 case 1: echo 'Technicien'; break;
                                 default: echo 'Utilisateur'; break;
                             }
@@ -912,8 +942,8 @@ function dashboard_view($stats): string {
                                         </div>
                                     </div>
                                     <div class="ticket-badges">
-                                        <span class="badge priority-<?= $ticket['priority'] ?>"><?= ucfirst($ticket['priority']) ?></span>
-                                        <span class="badge status-<?= $ticket['status'] ?>"><?= ucfirst($ticket['status']) ?></span>
+                                        <span class="badge priority-<?= $ticket['priority'] ?>"><?= translate_field('priority', $ticket['priority']) ?></span>
+                                        <span class="badge status-<?= $ticket['status'] ?>"><?= translate_field('status', $ticket['status']) ?></span>
                                     </div>
                                     <div class="ticket-action">
                                         <a href="?action=ticket_detail&id=<?= $ticket['id'] ?>" class="btn btn-sm btn-secondary">Voir</a>
@@ -1019,9 +1049,9 @@ function tickets_view($tickets, $filters): string {
                                     </div>
                                 </td>
                                 <td><?= e($ticket['prenom'] . ' ' . $ticket['nom']) ?></td>
-                                <td><span class="badge category-<?= $ticket['category'] ?>"><?= ucfirst($ticket['category']) ?></span></td>
-                                <td><span class="badge priority-<?= $ticket['priority'] ?>"><?= ucfirst($ticket['priority']) ?></span></td>
-                                <td><span class="badge status-<?= $ticket['status'] ?>"><?= ucfirst(str_replace('_', ' ', $ticket['status'])) ?></span></td>
+                                <td><span class="badge category-<?= $ticket['category'] ?>"><?= translate_field('category', $ticket['category']) ?></span></td>
+                                <td><span class="badge priority-<?= $ticket['priority'] ?>"><?= translate_field('priority', $ticket['priority']) ?></span></td>
+                                <td><span class="badge status-<?= $ticket['status'] ?>"><?= translate_field('status', $ticket['status']) ?></span></td>
                                 <td><?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?></td>
                                 <td onclick="event.stopPropagation()">
                                     <div class="action-buttons">
@@ -1136,7 +1166,7 @@ function users_view($users, $search): string {
                                     <span class="badge role-<?= $user['droit'] ?>">
                                         <?php
                                         switch($user['droit']) {
-                                            case 2: echo 'Admin'; break;
+                                            case 2: echo 'Administrateur'; break;
                                             case 1: echo 'Technicien'; break;
                                             default: echo 'Utilisateur'; break;
                                         }
@@ -1374,6 +1404,29 @@ function permissions_view($roles, $users_by_role = []): string {
                     <div class="role-users-content">
                         <?php if (empty($role_data['users'])): ?>
                             <p class="empty-state">Aucun utilisateur</p>
+                        <?php elseif (count($role_data['users']) > 3): ?>
+                            <details class="users-dropdown">
+                                <summary class="users-dropdown-summary">
+                                    <i class="fas fa-users"></i>
+                                    <?= count($role_data['users']) ?> utilisateurs — cliquer pour afficher
+                                </summary>
+                                <ul class="users-list users-list-collapsed">
+                                    <?php foreach ($role_data['users'] as $user): ?>
+                                    <li class="user-item">
+                                        <div class="user-name">
+                                            <strong><?= e($user['prenom'] . ' ' . $user['nom']) ?></strong>
+                                            <?php if ($user['id'] == $_SESSION['user_id']): ?>
+                                                <span class="badge badge-info">Vous</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="user-email"><?= e($user['email']) ?></div>
+                                        <?php if ($user['numero_telephone']): ?>
+                                        <div class="user-phone"><i class="fas fa-phone"></i> <?= e($user['numero_telephone']) ?></div>
+                                        <?php endif; ?>
+                                    </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </details>
                         <?php else: ?>
                             <ul class="users-list">
                                 <?php foreach ($role_data['users'] as $user): ?>
@@ -1593,9 +1646,9 @@ function ticket_detail_view($ticket, $responses): string {
                 <div class="ticket-header-info">
                     <h2><?= e($ticket['title']) ?></h2>
                     <div class="ticket-meta">
-                        <span class="badge priority-<?= $ticket['priority'] ?>"><?= ucfirst($ticket['priority']) ?></span>
-                        <span class="badge status-<?= $ticket['status'] ?>"><?= ucfirst(str_replace('_', ' ', $ticket['status'])) ?></span>
-                        <span class="badge category-<?= $ticket['category'] ?>"><?= ucfirst($ticket['category']) ?></span>
+                        <span class="badge priority-<?= $ticket['priority'] ?>"><?= translate_field('priority', $ticket['priority']) ?></span>
+                        <span class="badge status-<?= $ticket['status'] ?>"><?= translate_field('status', $ticket['status']) ?></span>
+                        <span class="badge category-<?= $ticket['category'] ?>"><?= translate_field('category', $ticket['category']) ?></span>
                     </div>
                 </div>
                 <div class="ticket-actions">
@@ -1635,7 +1688,7 @@ function ticket_detail_view($ticket, $responses): string {
                         </div>
                         <div class="info-item">
                             <label>Type :</label>
-                            <span><?= ucfirst($ticket['type']) ?></span>
+                            <span><?= translate_field('type', $ticket['type']) ?></span>
                         </div>
                         <div class="info-item">
                             <label>Créé le :</label>

@@ -76,6 +76,36 @@ function status_badge($s) {
     $label = $map[$s] ?? $s;
     return '<span class="badge badge-'.$s.'">'.$label.'</span>';
 }
+
+// Fonction de traduction des énumérés
+function translate_field(string $field_type, string $value): string {
+    $translations = [
+        'status' => [
+            'open' => 'Ouvert',
+            'in_progress' => 'En cours',
+            'resolved' => 'Résolu',
+            'closed' => 'Fermé'
+        ],
+        'priority' => [
+            'low' => 'Faible',
+            'medium' => 'Moyenne',
+            'high' => 'Élevée',
+            'urgent' => 'Urgente'
+        ],
+        'category' => [
+            'materiel' => 'Matériel',
+            'logiciel' => 'Logiciel',
+            'reseau' => 'Réseau',
+            'autre' => 'Autre'
+        ],
+        'type' => [
+            'incident' => 'Incident',
+            'demande' => 'Demande'
+        ]
+    ];
+    
+    return $translations[$field_type][$value] ?? ucfirst(str_replace('_', ' ', $value));
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -154,8 +184,8 @@ function status_badge($s) {
   <tr class="ticket-row" data-href="ticket.php?id=<?= $tid ?>" style="cursor:pointer;">
     <td><?= (int)$t['id'] ?></td>
     <td class="title"><?= htmlspecialchars($t['title'], ENT_QUOTES, 'UTF-8') ?></td>
-    <td><?= htmlspecialchars(ucfirst($t['category']), ENT_QUOTES, 'UTF-8') ?></td>
-    <td><?= htmlspecialchars(ucfirst($t['type']), ENT_QUOTES, 'UTF-8') ?></td>
+    <td><?= htmlspecialchars(translate_field('category', $t['category']), ENT_QUOTES, 'UTF-8') ?></td>
+    <td><?= htmlspecialchars(translate_field('type', $t['type']), ENT_QUOTES, 'UTF-8') ?></td>
     <td><?= status_badge($t['status']) ?></td>
     <td><?php $dt=new DateTime($t['created_at']); echo $dt->format('d/m/Y H:i'); ?></td>
     <td onclick="event.stopPropagation()">

@@ -1224,6 +1224,55 @@ select option {
     font-style: italic;
 }
 
+/* Liste déroulante utilisateurs (> 3) */
+.users-dropdown {
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.users-dropdown-summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.08);
+    user-select: none;
+    list-style: none;
+    transition: background 0.2s ease;
+}
+
+.users-dropdown-summary::-webkit-details-marker {
+    display: none;
+}
+
+.users-dropdown-summary::after {
+    content: '\f078';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-left: auto;
+    font-size: 11px;
+    transition: transform 0.25s ease;
+}
+
+.users-dropdown[open] .users-dropdown-summary::after {
+    transform: rotate(180deg);
+}
+
+.users-dropdown-summary:hover {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+.users-list-collapsed {
+    padding: 0.75rem;
+    margin: 0;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
 /* Also hide any standalone previous/next controls often used */
 .prev, .next, .page-prev, .page-next {
     display: none !important;

@@ -82,6 +82,36 @@ function status_badge($s) {
   $label = $map[$s] ?? $s;
   return '<span class="badge badge-'.$s.'">'.$label.'</span>';
 }
+
+// Fonction de traduction des énumérés
+function translate_field(string $field_type, string $value): string {
+    $translations = [
+        'status' => [
+            'open' => 'Ouvert',
+            'in_progress' => 'En cours',
+            'resolved' => 'Résolu',
+            'closed' => 'Fermé'
+        ],
+        'priority' => [
+            'low' => 'Faible',
+            'medium' => 'Moyenne',
+            'high' => 'Élevée',
+            'urgent' => 'Urgente'
+        ],
+        'category' => [
+            'materiel' => 'Matériel',
+            'logiciel' => 'Logiciel',
+            'reseau' => 'Réseau',
+            'autre' => 'Autre'
+        ],
+        'type' => [
+            'incident' => 'Incident',
+            'demande' => 'Demande'
+        ]
+    ];
+    
+    return $translations[$field_type][$value] ?? ucfirst(str_replace('_', ' ', $value));
+}
 ?>
 <!doctype html>
 <html lang="fr">
@@ -139,11 +169,11 @@ function status_badge($s) {
         <div class="user-info" style="margin-bottom:1rem;">
           <div class="field">
             <label>Catégorie</label>
-            <input type="text" value="<?= htmlspecialchars(ucfirst($ticket['category'])) ?>" disabled>
+            <input type="text" value="<?= htmlspecialchars(translate_field('category', $ticket['category'])) ?>" disabled>
           </div>
           <div class="field">
             <label>Type</label>
-            <input type="text" value="<?= htmlspecialchars(ucfirst($ticket['type'])) ?>" disabled>
+            <input type="text" value="<?= htmlspecialchars(translate_field('type', $ticket['type'])) ?>" disabled>
           </div>
         </div>
 
