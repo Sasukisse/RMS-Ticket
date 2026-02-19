@@ -258,6 +258,7 @@ switch ($action) {
             if ($op === 'add_response') ticket_add_response($ticket_id);
             if ($op === 'update_status') ticket_update_status_direct($ticket_id);
             if ($op === 'update_priority') ticket_update_priority_direct($ticket_id);
+            if ($op === 'assign') ticket_assign_direct($ticket_id);
             header("Location: ?action=ticket_detail&id=$ticket_id"); exit;
         }
         $ticket = ticket_get_detail($ticket_id);
@@ -399,6 +400,7 @@ function tickets_list($filters): array {
     
     $sql = "
         SELECT t.*, u.nom, u.prenom, u.email,
+               a.nom AS assigned_nom, a.prenom AS assigned_prenom,
                CASE 
                    WHEN t.priority = 'urgent' THEN 4
                    WHEN t.priority = 'high' THEN 3
@@ -406,7 +408,8 @@ function tickets_list($filters): array {
                    ELSE 1
                END as priority_order
         FROM tickets t 
-        JOIN users u ON t.user_id = u.id 
+        JOIN users u ON t.user_id = u.id
+        LEFT JOIN users a ON t.assigned_to = a.id
         WHERE " . implode(' AND ', $where) . "
         ORDER BY priority_order DESC, t.created_at DESC
     ";
@@ -443,13 +446,53 @@ function tickets_delete(): void {
     log_admin_action('ticket_delete', "Ticket ID: $ticket_id supprimé");
 }
 
+function get_technicians(): array {
+    $conn = getConnection();
+    $stmt = $conn->prepare('SELECT id, nom, prenom, email FROM users WHERE droit >= 1 ORDER BY prenom, nom');
+    $stmt->execute();
+    return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+}
+
+function tickets_assign(): void {
+    $conn = getConnection();
+    $ticket_id = intval($_POST['ticket_id'] ?? 0);
+    $assigned_to = !empty($_POST['assigned_to']) ? intval($_POST['assigned_to']) : null;
+    
+    if ($assigned_to !== null) {
+        $stmt = $conn->prepare('UPDATE tickets SET assigned_to = ?, status = IF(status = "open", "in_progress", status), updated_at = NOW() WHERE id = ?');
+        $stmt->bind_param('ii', $assigned_to, $ticket_id);
+    } else {
+        $stmt = $conn->prepare('UPDATE tickets SET assigned_to = NULL, updated_at = NOW() WHERE id = ?');
+        $stmt->bind_param('i', $ticket_id);
+    }
+    $stmt->execute();
+    log_admin_action('ticket_assign', "Ticket ID: $ticket_id assigné à user_id: " . ($assigned_to ?? 'personne'));
+}
+
+function ticket_assign_direct(int $ticket_id): void {
+    $conn = getConnection();
+    $assigned_to = !empty($_POST['assigned_to']) ? intval($_POST['assigned_to']) : null;
+    
+    if ($assigned_to !== null) {
+        $stmt = $conn->prepare('UPDATE tickets SET assigned_to = ?, status = IF(status = "open", "in_progress", status), updated_at = NOW() WHERE id = ?');
+        $stmt->bind_param('ii', $assigned_to, $ticket_id);
+    } else {
+        $stmt = $conn->prepare('UPDATE tickets SET assigned_to = NULL, updated_at = NOW() WHERE id = ?');
+        $stmt->bind_param('i', $ticket_id);
+    }
+    $stmt->execute();
+    log_admin_action('ticket_assign', "Ticket ID: $ticket_id assigné à user_id: " . ($assigned_to ?? 'personne'));
+}
+
 function ticket_get_detail($ticket_id): ?array {
     $conn = getConnection();
     
     $stmt = $conn->prepare("
-        SELECT t.*, u.nom, u.prenom, u.email, u.numero_telephone
+        SELECT t.*, u.nom, u.prenom, u.email, u.numero_telephone,
+               a.nom AS assigned_nom, a.prenom AS assigned_prenom, a.email AS assigned_email
         FROM tickets t 
-        JOIN users u ON t.user_id = u.id 
+        JOIN users u ON t.user_id = u.id
+        LEFT JOIN users a ON t.assigned_to = a.id
         WHERE t.id = ?
     ");
     $stmt->bind_param('i', $ticket_id);
@@ -1031,6 +1074,7 @@ function tickets_view($tickets, $filters): string {
                                 <th>ID</th>
                                 <th>Titre</th>
                                 <th>Utilisateur</th>
+                                <th>Assigné à</th>
                                 <th>Catégorie</th>
                                 <th>Priorité</th>
                                 <th>Statut</th>
@@ -1049,6 +1093,13 @@ function tickets_view($tickets, $filters): string {
                                     </div>
                                 </td>
                                 <td><?= e($ticket['prenom'] . ' ' . $ticket['nom']) ?></td>
+                                <td>
+                                    <?php if (!empty($ticket['assigned_prenom'])): ?>
+                                        <span class="assigned-badge"><i class="fas fa-user-cog"></i> <?= e($ticket['assigned_prenom'] . ' ' . $ticket['assigned_nom']) ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted">—</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td><span class="badge category-<?= $ticket['category'] ?>"><?= translate_field('category', $ticket['category']) ?></span></td>
                                 <td><span class="badge priority-<?= $ticket['priority'] ?>"><?= translate_field('priority', $ticket['priority']) ?></span></td>
                                 <td><span class="badge status-<?= $ticket['status'] ?>"><?= translate_field('status', $ticket['status']) ?></span></td>
@@ -1675,6 +1726,54 @@ function ticket_detail_view($ticket, $responses): string {
                             <option value="urgent" <?= $ticket['priority'] === 'urgent' ? 'selected' : '' ?>>Urgente</option>
                         </select>
                         </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Bloc assignation technicien -->
+            <?php
+            $technicians = get_technicians();
+            $current_assigned_id = $ticket['assigned_to'] ?? null;
+            $current_user_data = current_user();
+            ?>
+            <div class="assign-bar">
+                <div class="assign-current">
+                    <i class="fas fa-user-cog"></i>
+                    <?php if ($current_assigned_id && $ticket['assigned_nom']): ?>
+                        Assigné à : <strong><?= e($ticket['assigned_prenom'] . ' ' . $ticket['assigned_nom']) ?></strong>
+                        <span class="assign-email"><?= e($ticket['assigned_email']) ?></span>
+                    <?php else: ?>
+                        <span class="text-muted">Non assigné</span>
+                    <?php endif; ?>
+                </div>
+                <div class="assign-actions">
+                    <?php if ((int)$current_user_data['id'] !== (int)$current_assigned_id): ?>
+                    <form method="POST" style="display:inline;">
+                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                        <input type="hidden" name="op" value="assign">
+                        <input type="hidden" name="assigned_to" value="<?= (int)$current_user_data['id'] ?>">
+                        <button type="submit" class="btn btn-sm btn-assign-me">
+                            <i class="fas fa-hand-point-right"></i> M'assigner
+                        </button>
+                    </form>
+                    <?php endif; ?>
+                    <form method="POST" style="display:inline;" class="assign-form">
+                        <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                        <input type="hidden" name="op" value="assign">
+                        <div class="select-wrapper assign-select-wrapper">
+                            <select name="assigned_to" class="input input-sm" onchange="this.form.submit()">
+                                <option value="">— Assigner à... —</option>
+                                <?php foreach ($technicians as $tech): ?>
+                                <option value="<?= (int)$tech['id'] ?>" <?= (int)$tech['id'] === (int)$current_assigned_id ? 'selected' : '' ?>>
+                                    <?= e($tech['prenom'] . ' ' . $tech['nom']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php if ($current_assigned_id): ?>
+                        <button type="submit" name="assigned_to" value="" class="btn btn-sm btn-unassign">
+                            <i class="fas fa-user-times"></i> Désassigner
+                        </button>
+                        <?php endif; ?>
                     </form>
                 </div>
             </div>

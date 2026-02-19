@@ -899,6 +899,96 @@ select option {
     gap: 1rem;
 }
 
+/* Barre d'assignation technicien */
+.assign-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.85rem 1.5rem;
+    background: rgba(99, 102, 241, 0.07);
+    border-top: 1px solid rgba(99, 102, 241, 0.18);
+    border-bottom: 1px solid rgba(99, 102, 241, 0.18);
+}
+
+.assign-current {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+.assign-current i {
+    color: var(--primary);
+}
+
+.assign-email {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-left: 0.35rem;
+}
+
+.assign-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.assign-select-wrapper {
+    min-width: 180px;
+}
+
+.btn-assign-me {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--primary);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-assign-me:hover {
+    background: rgba(99, 102, 241, 0.35);
+    border-color: var(--primary);
+}
+
+.btn-unassign {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-unassign:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: #f87171;
+}
+
+/* Badge "assigné à" dans la liste des tickets */
+.assigned-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.82rem;
+    color: var(--primary);
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    border-radius: 20px;
+    padding: 0.2rem 0.6rem;
+    white-space: nowrap;
+}
+
 .ticket-info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
