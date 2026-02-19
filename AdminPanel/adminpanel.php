@@ -236,16 +236,18 @@ switch ($action) {
     case 'tickets':
         if ($method === 'POST') {
             $op = $_POST['op'] ?? '';
+            $tab = $_POST['tab'] ?? 'incidents';
             if ($op === 'update_status') tickets_update_status();
             if ($op === 'assign') tickets_assign();
             if ($op === 'delete') tickets_delete();
-            header('Location: ?action=tickets'); exit;
+            header('Location: ?action=tickets&tab=' . urlencode($tab)); exit;
         }
         $filters = [
-            'status' => $_GET['status'] ?? '',
+            'status'   => $_GET['status'] ?? '',
             'priority' => $_GET['priority'] ?? '',
             'category' => $_GET['category'] ?? '',
-            'search' => trim($_GET['search'] ?? '')
+            'search'   => trim($_GET['search'] ?? ''),
+            'tab'      => $_GET['tab'] ?? 'incidents'
         ];
         $tickets = tickets_list($filters);
         page_layout('Gestion des tickets', tickets_view($tickets, $filters));
@@ -336,13 +338,9 @@ function dashboard_stats(): array {
     $conn = getConnection();
     
     // Stats des tickets
-    $tickets_total = $conn->query("SELECT COUNT(*) as count FROM tickets")->fetch_assoc()['count'];
-    $tickets_open = $conn->query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('open', 'in_progress')")->fetch_assoc()['count'];
-    $tickets_urgent = $conn->query("SELECT COUNT(*) as count FROM tickets WHERE priority = 'urgent'")->fetch_assoc()['count'];
-    
-    // Stats des utilisateurs
-    $users_total = $conn->query("SELECT COUNT(*) as count FROM users")->fetch_assoc()['count'];
-    $users_active = $conn->query("SELECT COUNT(*) as count FROM users WHERE droit >= 0")->fetch_assoc()['count'];
+    $tickets_urgent = $conn->query("SELECT COUNT(*) as count FROM tickets WHERE priority = 'urgent' AND status NOT IN ('closed','resolved')")->fetch_assoc()['count'];
+    $tickets_incidents_open = $conn->query("SELECT COUNT(*) as count FROM tickets WHERE type = 'incident' AND status IN ('open', 'in_progress')")->fetch_assoc()['count'];
+    $tickets_demandes_open  = $conn->query("SELECT COUNT(*) as count FROM tickets WHERE type = 'demande'  AND status IN ('open', 'in_progress')")->fetch_assoc()['count'];
     
     // Tickets récents
     $recent_tickets = $conn->query("
@@ -354,12 +352,10 @@ function dashboard_stats(): array {
     ")->fetch_all(MYSQLI_ASSOC);
     
     return [
-        'tickets_total' => $tickets_total,
-        'tickets_open' => $tickets_open,
-        'tickets_urgent' => $tickets_urgent,
-        'users_total' => $users_total,
-        'users_active' => $users_active,
-        'recent_tickets' => $recent_tickets
+        'tickets_urgent'        => $tickets_urgent,
+        'tickets_incidents_open' => $tickets_incidents_open,
+        'tickets_demandes_open'  => $tickets_demandes_open,
+        'recent_tickets'         => $recent_tickets
     ];
 }
 
@@ -390,6 +386,8 @@ function tickets_list($filters): array {
         $params[] = $filters['category'];
         $types .= 's';
     }
+
+    // Le filtre type est géré via les onglets — pas de filtre SQL, on sépare en PHP
     
     if (!empty($filters['search'])) {
         $where[] = '(t.title LIKE ? OR t.description LIKE ? OR u.nom LIKE ? OR u.prenom LIKE ?)';
@@ -933,35 +931,25 @@ function dashboard_view($stats): string {
                 </div>
             </div>
             
-            <div class="stat-card open">
+            <a href="?action=tickets&tab=incidents" class="stat-card incidents" style="text-decoration:none;">
                 <div class="stat-icon">
-                    <i class="fas fa-folder-open"></i>
+                    <i class="fas fa-bolt"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-number"><?= $stats['tickets_open'] ?></div>
-                    <div class="stat-label">Tickets ouverts</div>
+                    <div class="stat-number"><?= $stats['tickets_incidents_open'] ?></div>
+                    <div class="stat-label">Incidents ouverts</div>
                 </div>
-            </div>
+            </a>
             
-            <div class="stat-card total">
+            <a href="?action=tickets&tab=demandes" class="stat-card demandes" style="text-decoration:none;">
                 <div class="stat-icon">
-                    <i class="fas fa-ticket-alt"></i>
+                    <i class="fas fa-clipboard-list"></i>
                 </div>
                 <div class="stat-content">
-                    <div class="stat-number"><?= $stats['tickets_total'] ?></div>
-                    <div class="stat-label">Total tickets</div>
+                    <div class="stat-number"><?= $stats['tickets_demandes_open'] ?></div>
+                    <div class="stat-label">Demandes ouvertes</div>
                 </div>
-            </div>
-            
-            <div class="stat-card users">
-                <div class="stat-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-number"><?= $stats['users_total'] ?></div>
-                    <div class="stat-label">Utilisateurs</div>
-                </div>
-            </div>
+            </a>
         </div>
         
         <div class="recent-section">
@@ -1006,140 +994,220 @@ function dashboard_view($stats): string {
 // =========================
 // VUES - TICKETS
 // =========================
+function tickets_table_body(array $rows, string $tab): string {
+    ob_start();
+    foreach ($rows as $ticket): ?>
+    <tr class="ticket-row" onclick="window.location.href='?action=ticket_detail&id=<?= $ticket['id'] ?>'" style="cursor: pointer;">
+        <td>#<?= $ticket['id'] ?></td>
+        <td>
+            <div class="ticket-title-cell">
+                <strong><?= e($ticket['title']) ?></strong>
+                <div class="ticket-description"><?= e(substr($ticket['description'], 0, 100)) ?>...</div>
+            </div>
+        </td>
+        <td><?= e($ticket['prenom'] . ' ' . $ticket['nom']) ?></td>
+        <td>
+            <?php if (!empty($ticket['assigned_prenom'])): ?>
+                <span class="assigned-badge"><i class="fas fa-user-cog"></i> <?= e($ticket['assigned_prenom'] . ' ' . $ticket['assigned_nom']) ?></span>
+            <?php else: ?>
+                <span class="text-muted">—</span>
+            <?php endif; ?>
+        </td>
+        <td><span class="badge category-<?= $ticket['category'] ?>"><?= translate_field('category', $ticket['category']) ?></span></td>
+        <td><span class="badge priority-<?= $ticket['priority'] ?>"><?= translate_field('priority', $ticket['priority']) ?></span></td>
+        <td><span class="badge status-<?= $ticket['status'] ?>"><?= translate_field('status', $ticket['status']) ?></span></td>
+        <td><?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?></td>
+        <td onclick="event.stopPropagation()">
+            <div class="action-buttons">
+                <form method="POST" style="display: inline;">
+                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="op" value="update_status">
+                    <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
+                    <input type="hidden" name="tab" value="<?= e($tab) ?>">
+                    <div class="select-wrapper">
+                        <select name="status" onchange="this.form.submit()" class="input input-sm" data-custom="true">
+                            <option value="open" <?= $ticket['status'] === 'open' ? 'selected' : '' ?>>Ouvert</option>
+                            <option value="in_progress" <?= $ticket['status'] === 'in_progress' ? 'selected' : '' ?>>En cours</option>
+                            <option value="resolved" <?= $ticket['status'] === 'resolved' ? 'selected' : '' ?>>Résolu</option>
+                            <option value="closed" <?= $ticket['status'] === 'closed' ? 'selected' : '' ?>>Fermé</option>
+                        </select>
+                    </div>
+                </form>
+                <?php if (current_user()['droit'] >= 2): ?>
+                <form method="POST" style="display: inline;" onsubmit="return confirm('Supprimer ce ticket ?')">
+                    <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
+                    <input type="hidden" name="op" value="delete">
+                    <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
+                    <input type="hidden" name="tab" value="<?= e($tab) ?>">
+                    <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                </form>
+                <?php endif; ?>
+            </div>
+        </td>
+    </tr>
+    <?php endforeach;
+    return ob_get_clean();
+}
+
 function tickets_view($tickets, $filters): string {
+    // Séparer incidents et demandes
+    $incidents = array_values(array_filter($tickets, fn($t) => $t['type'] === 'incident'));
+    $demandes  = array_values(array_filter($tickets, fn($t) => $t['type'] === 'demande'));
+
+    // Compteurs incidents
+    $inc_new       = count(array_filter($incidents, fn($t) => $t['status'] === 'open'));
+    $inc_progress  = count(array_filter($incidents, fn($t) => $t['status'] === 'in_progress'));
+    $inc_resolved  = count(array_filter($incidents, fn($t) => in_array($t['status'], ['resolved','closed'])));
+
+    // Compteurs demandes
+    $dem_new       = count(array_filter($demandes, fn($t) => $t['status'] === 'open'));
+    $dem_progress  = count(array_filter($demandes, fn($t) => $t['status'] === 'in_progress'));
+    $dem_resolved  = count(array_filter($demandes, fn($t) => in_array($t['status'], ['resolved','closed'])));
+
+    $active_tab = $filters['tab'] ?? 'incidents';
+
     ob_start();
 ?>
+    <!-- Filtres communs -->
     <div class="page-actions">
         <div class="filters">
             <form method="GET" class="filter-form">
                 <input type="hidden" name="action" value="tickets">
-                
+                <input type="hidden" name="tab" value="<?= e($active_tab) ?>">
                 <div class="filter-group">
                     <input type="text" name="search" placeholder="Rechercher..." value="<?= e($filters['search']) ?>" class="input">
                 </div>
-                
                 <div class="filter-group">
                     <select name="status" class="input">
                         <option value="">Tous les statuts</option>
-                        <option value="open" <?= $filters['status'] === 'open' ? 'selected' : '' ?>>Ouvert</option>
+                        <option value="open"        <?= $filters['status'] === 'open'        ? 'selected' : '' ?>>Ouvert</option>
                         <option value="in_progress" <?= $filters['status'] === 'in_progress' ? 'selected' : '' ?>>En cours</option>
-                        <option value="resolved" <?= $filters['status'] === 'resolved' ? 'selected' : '' ?>>Résolu</option>
-                        <option value="closed" <?= $filters['status'] === 'closed' ? 'selected' : '' ?>>Fermé</option>
+                        <option value="resolved"    <?= $filters['status'] === 'resolved'    ? 'selected' : '' ?>>Résolu</option>
+                        <option value="closed"      <?= $filters['status'] === 'closed'      ? 'selected' : '' ?>>Fermé</option>
                     </select>
                 </div>
-                
                 <div class="filter-group">
                     <select name="priority" class="input">
                         <option value="">Toutes les priorités</option>
-                        <option value="low" <?= $filters['priority'] === 'low' ? 'selected' : '' ?>>Faible</option>
+                        <option value="low"    <?= $filters['priority'] === 'low'    ? 'selected' : '' ?>>Faible</option>
                         <option value="medium" <?= $filters['priority'] === 'medium' ? 'selected' : '' ?>>Moyenne</option>
-                        <option value="high" <?= $filters['priority'] === 'high' ? 'selected' : '' ?>>Élevée</option>
+                        <option value="high"   <?= $filters['priority'] === 'high'   ? 'selected' : '' ?>>Élevée</option>
                         <option value="urgent" <?= $filters['priority'] === 'urgent' ? 'selected' : '' ?>>Urgente</option>
                     </select>
                 </div>
-                
                 <div class="filter-group">
                     <select name="category" class="input">
                         <option value="">Toutes les catégories</option>
                         <option value="materiel" <?= $filters['category'] === 'materiel' ? 'selected' : '' ?>>Matériel</option>
                         <option value="logiciel" <?= $filters['category'] === 'logiciel' ? 'selected' : '' ?>>Logiciel</option>
-                        <option value="reseau" <?= $filters['category'] === 'reseau' ? 'selected' : '' ?>>Réseau</option>
-                        <option value="autre" <?= $filters['category'] === 'autre' ? 'selected' : '' ?>>Autre</option>
+                        <option value="reseau"   <?= $filters['category'] === 'reseau'   ? 'selected' : '' ?>>Réseau</option>
+                        <option value="autre"    <?= $filters['category'] === 'autre'    ? 'selected' : '' ?>>Autre</option>
                     </select>
                 </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Filtrer
-                </button>
-                
-                <a href="?action=tickets" class="btn btn-secondary">
-                    <i class="fas fa-times"></i> Réinitialiser
-                </a>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-search"></i> Filtrer</button>
+                <a href="?action=tickets&tab=<?= e($active_tab) ?>" class="btn btn-secondary"><i class="fas fa-times"></i> Réinitialiser</a>
             </form>
         </div>
     </div>
-    
-    <div class="card">
-        <div class="card-header">
-            <h3><i class="fas fa-ticket-alt"></i> Tickets (<?= count($tickets) ?>)</h3>
+
+    <!-- Onglets Incidents / Demandes -->
+    <div class="tickets-tabs">
+        <button class="tickets-tab-btn <?= $active_tab === 'incidents' ? 'active' : '' ?>" data-tab="incidents" onclick="switchTab('incidents')">
+            <i class="fas fa-bolt"></i> Incidents
+            <span class="tab-count"><?= count($incidents) ?></span>
+        </button>
+        <button class="tickets-tab-btn <?= $active_tab === 'demandes' ? 'active' : '' ?>" data-tab="demandes" onclick="switchTab('demandes')">
+            <i class="fas fa-clipboard-list"></i> Demandes
+            <span class="tab-count"><?= count($demandes) ?></span>
+        </button>
+    </div>
+
+    <!-- Panneau Incidents -->
+    <div id="tab-incidents" class="tab-panel <?= $active_tab === 'incidents' ? 'active' : '' ?>">
+        <div class="type-stats-bar">
+            <div class="type-stat new">
+                <span class="type-stat-number"><?= $inc_new ?></span>
+                <span class="type-stat-label">Nouveaux</span>
+            </div>
+            <div class="type-stat progress">
+                <span class="type-stat-number"><?= $inc_progress ?></span>
+                <span class="type-stat-label">En cours</span>
+            </div>
+            <div class="type-stat resolved">
+                <span class="type-stat-number"><?= $inc_resolved ?></span>
+                <span class="type-stat-label">Résolus / Fermés</span>
+            </div>
         </div>
-        <div class="card-content">
-            <?php if (empty($tickets)): ?>
-                <p class="empty-state">Aucun ticket trouvé</p>
-            <?php else: ?>
-                <div class="table-responsive no-scrollbar">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Titre</th>
-                                <th>Utilisateur</th>
-                                <th>Assigné à</th>
-                                <th>Catégorie</th>
-                                <th>Priorité</th>
-                                <th>Statut</th>
-                                <th>Créé le</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($tickets as $ticket): ?>
-                            <tr class="ticket-row" onclick="window.location.href='?action=ticket_detail&id=<?= $ticket['id'] ?>'" style="cursor: pointer;">
-                                <td>#<?= $ticket['id'] ?></td>
-                                <td>
-                                    <div class="ticket-title-cell">
-                                        <strong><?= e($ticket['title']) ?></strong>
-                                        <div class="ticket-description"><?= e(substr($ticket['description'], 0, 100)) ?>...</div>
-                                    </div>
-                                </td>
-                                <td><?= e($ticket['prenom'] . ' ' . $ticket['nom']) ?></td>
-                                <td>
-                                    <?php if (!empty($ticket['assigned_prenom'])): ?>
-                                        <span class="assigned-badge"><i class="fas fa-user-cog"></i> <?= e($ticket['assigned_prenom'] . ' ' . $ticket['assigned_nom']) ?></span>
-                                    <?php else: ?>
-                                        <span class="text-muted">—</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td><span class="badge category-<?= $ticket['category'] ?>"><?= translate_field('category', $ticket['category']) ?></span></td>
-                                <td><span class="badge priority-<?= $ticket['priority'] ?>"><?= translate_field('priority', $ticket['priority']) ?></span></td>
-                                <td><span class="badge status-<?= $ticket['status'] ?>"><?= translate_field('status', $ticket['status']) ?></span></td>
-                                <td><?= date('d/m/Y H:i', strtotime($ticket['created_at'])) ?></td>
-                                <td onclick="event.stopPropagation()">
-                                    <div class="action-buttons">
-                                        <form method="POST" style="display: inline;">
-                                            <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                                            <input type="hidden" name="op" value="update_status">
-                                            <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
-                                            <div class="select-wrapper">
-                                                <select name="status" onchange="this.form.submit()" class="input input-sm" data-custom="true">
-                                                <option value="open" <?= $ticket['status'] === 'open' ? 'selected' : '' ?>>Ouvert</option>
-                                                <option value="in_progress" <?= $ticket['status'] === 'in_progress' ? 'selected' : '' ?>>En cours</option>
-                                                <option value="resolved" <?= $ticket['status'] === 'resolved' ? 'selected' : '' ?>>Résolu</option>
-                                                <option value="closed" <?= $ticket['status'] === 'closed' ? 'selected' : '' ?>>Fermé</option>
-                                            </select>
-                                            </div>
-                                        </form>
-                                        
-                                        <?php if (current_user()['droit'] >= 2): ?>
-                                        <form method="POST" style="display: inline;" onsubmit="return confirm('Supprimer ce ticket ?')">
-                                            <input type="hidden" name="_csrf" value="<?= csrf_token() ?>">
-                                            <input type="hidden" name="op" value="delete">
-                                            <input type="hidden" name="ticket_id" value="<?= $ticket['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-bolt"></i> Liste des incidents (<?= count($incidents) ?>)</h3>
+            </div>
+            <div class="card-content">
+                <?php if (empty($incidents)): ?>
+                    <p class="empty-state">Aucun incident trouvé</p>
+                <?php else: ?>
+                    <div class="table-responsive no-scrollbar">
+                        <table class="table">
+                            <thead><tr>
+                                <th>ID</th><th>Titre</th><th>Utilisateur</th><th>Assigné à</th><th>Catégorie</th><th>Priorité</th><th>Statut</th><th>Créé le</th><th>Actions</th>
+                            </tr></thead>
+                            <tbody><?= tickets_table_body($incidents, 'incidents') ?></tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
+
+    <!-- Panneau Demandes -->
+    <div id="tab-demandes" class="tab-panel <?= $active_tab === 'demandes' ? 'active' : '' ?>">
+        <div class="type-stats-bar">
+            <div class="type-stat new">
+                <span class="type-stat-number"><?= $dem_new ?></span>
+                <span class="type-stat-label">Nouvelles</span>
+            </div>
+            <div class="type-stat progress">
+                <span class="type-stat-number"><?= $dem_progress ?></span>
+                <span class="type-stat-label">En cours</span>
+            </div>
+            <div class="type-stat resolved">
+                <span class="type-stat-number"><?= $dem_resolved ?></span>
+                <span class="type-stat-label">Résolues / Fermées</span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h3><i class="fas fa-clipboard-list"></i> Liste des demandes (<?= count($demandes) ?>)</h3>
+            </div>
+            <div class="card-content">
+                <?php if (empty($demandes)): ?>
+                    <p class="empty-state">Aucune demande trouvée</p>
+                <?php else: ?>
+                    <div class="table-responsive no-scrollbar">
+                        <table class="table">
+                            <thead><tr>
+                                <th>ID</th><th>Titre</th><th>Utilisateur</th><th>Assigné à</th><th>Catégorie</th><th>Priorité</th><th>Statut</th><th>Créé le</th><th>Actions</th>
+                            </tr></thead>
+                            <tbody><?= tickets_table_body($demandes, 'demandes') ?></tbody>
+                        </table>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tickets-tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
+        // Mettre à jour l'URL sans rechargement
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tab);
+        history.replaceState(null, '', url.toString());
+    }
+    </script>
 <?php
     return ob_get_clean();
 }
