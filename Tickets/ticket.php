@@ -133,7 +133,7 @@ function translate_field(string $field_type, string $value): string {
   <nav class="navbar">
     <div class="nav-container">
       <a href="../HomePage/index.php" class="nav-brand" style="text-decoration:none;color:inherit;">
-        <div class="brand-logo"><span>R</span></div>
+        <div class="brand-logo"><span>🛡️</span></div>
         <span class="brand-text">RMS Ticket</span>
       </a>
       <div class="nav-menu">

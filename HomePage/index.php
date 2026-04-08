@@ -22,7 +22,7 @@ include '../Database/connection.php';
         <div class="nav-container">
             <div class="nav-brand">
                 <div class="brand-logo">
-                    <span>R</span>
+                    <span>🛡️</span>
                 </div>
                 <span class="brand-text">RMS Ticket</span>
             </div>

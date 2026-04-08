@@ -59,7 +59,7 @@ if (isset($_SESSION['user_id'])) {
     <div class="noise" aria-hidden="true"></div>
     <main class="container" role="main">
         <div class="brand" aria-label="Marque">
-            <div class="brand-logo" aria-hidden="true"><span>G</span></div>
+            <div class="brand-logo" aria-hidden="true"><span>🛡️</span></div>
             <div class="brand-title">Espace membre</div>
         </div>
         <div class="brand-sub">Connectez-vous pour continuer</div>
