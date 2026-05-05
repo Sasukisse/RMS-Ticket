@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : mar. 05 mai 2026 à 08:48
+-- Généré le : mar. 05 mai 2026 à 09:34
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -38,29 +38,6 @@ CREATE TABLE `admin_logs` (
   `user_agent` varchar(500) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Déchargement des données de la table `admin_logs`
---
-
-INSERT INTO `admin_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_id`, `details`, `ip_address`, `user_agent`, `created_at`) VALUES
-(1, NULL, 'ticket_assign', '', NULL, '\"Ticket ID: 3 assigné à user_id: 2\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-03-12 14:07:41'),
-(2, NULL, 'ticket_priority_update', '', NULL, '\"Ticket ID: 3, Nouvelle priorité: urgent\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-03-12 14:08:01'),
-(3, NULL, 'ticket_delete', '', NULL, '\"Ticket ID: 3 supprimé\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-03-12 14:08:12'),
-(4, NULL, 'logout', '', NULL, '\"Déconnexion du panneau admin\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-03-12 14:32:52'),
-(5, NULL, 'user_create', '', NULL, '\"Utilisateur créé: Jurys_SIO (jurys.sio@gmail.com)\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-04-08 08:40:48'),
-(6, NULL, 'logout', '', NULL, '\"Déconnexion du panneau admin\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-04-08 08:40:52'),
-(7, NULL, 'ticket_assign', '', NULL, '\"Ticket ID: 4 assigné à user_id: 2\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-04-09 09:02:03'),
-(8, NULL, 'ticket_priority_update', '', NULL, '\"Ticket ID: 4, Nouvelle priorité: high\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-04-09 09:02:11'),
-(9, NULL, 'ticket_priority_update', '', NULL, '\"Ticket ID: 4, Nouvelle priorité: urgent\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-04-09 09:02:12'),
-(10, NULL, 'ticket_status_update', '', NULL, '\"Ticket ID: 4, Nouveau statut: resolved\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-04-09 09:02:46'),
-(11, NULL, 'ticket_status_update', '', NULL, '\"Ticket ID: 4, Nouveau statut: in_progress\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-04-09 09:02:50'),
-(12, NULL, 'ticket_delete', '', NULL, '\"Ticket ID: 4 supprimé\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', '2026-04-09 09:09:49'),
-(13, 7, 'user_update', '', NULL, '\"Utilisateur modifié: Romain (ID: 1)\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36', '2026-05-05 06:41:17'),
-(14, 7, 'user_create', '', NULL, '\"Utilisateur créé: Samuel (samuel.tardy78@gmail.com)\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36', '2026-05-05 06:42:34'),
-(15, 7, 'user_create', '', NULL, '\"Utilisateur créé: Dylan (dylan.dupont@gmail.com)\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36', '2026-05-05 06:45:27'),
-(16, 7, 'user_create', '', NULL, '\"Utilisateur créé: Sally (sally.carrera@gmail.com)\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36', '2026-05-05 06:46:02'),
-(17, 7, 'user_create', '', NULL, '\"Utilisateur créé: Pope (pope.raylon@gmail.com)\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36', '2026-05-05 06:46:52');
 
 -- --------------------------------------------------------
 
@@ -195,13 +172,6 @@ CREATE TABLE `tickets` (
   `resolution_notes` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Déchargement des données de la table `tickets`
---
-
-INSERT INTO `tickets` (`id`, `user_id`, `assigned_to`, `title`, `description`, `category`, `type`, `priority`, `status`, `created_at`, `updated_at`, `closed_at`, `resolution_notes`) VALUES
-(1, 1, NULL, 'Problème avec VSCODE', 'Bjr, j\'ai un problème avec VScode', 'logiciel', 'incident', 'urgent', 'in_progress', '2026-02-17 08:32:50', '2026-02-19 10:36:00', NULL, NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -254,24 +224,6 @@ CREATE TABLE `ticket_responses` (
   `is_admin_response` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Déchargement des données de la table `ticket_responses`
---
-
-INSERT INTO `ticket_responses` (`id`, `ticket_id`, `user_id`, `response_text`, `is_admin_response`, `created_at`) VALUES
-(1, 1, 1, 'Ceci est un test', 1, '2026-02-17 08:33:11'),
-(2, 1, 1, 'hkb', 1, '2026-02-17 08:44:14'),
-(3, 1, 1, 'test', 1, '2026-02-17 08:57:34'),
-(4, 1, 1, 'bjrs test', 1, '2026-02-17 08:59:33'),
-(5, 1, 1, 'me\"pji', 1, '2026-02-17 09:12:42'),
-(6, 1, 2, 'test notification', 1, '2026-02-17 09:14:52'),
-(7, 3, 2, 'test', 1, '2026-03-12 14:06:51'),
-(8, 3, 2, 'tet', 1, '2026-03-12 14:06:59'),
-(9, 4, 2, 'aider moi svp', 1, '2026-04-09 09:01:41'),
-(10, 4, 2, 'je t\'aide !', 1, '2026-04-09 09:02:23'),
-(11, 4, 2, 'comment tu veux que je t\'aide', 1, '2026-04-09 09:02:57'),
-(12, 4, 2, 'non c\'est bon !', 1, '2026-04-09 09:03:08');
 
 -- --------------------------------------------------------
 
