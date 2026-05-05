@@ -12,7 +12,6 @@ Avant de commencer, assurez-vous d'avoir installé sur votre machine :
 | Logiciel | Version minimale | Téléchargement |
 |---|---|---|
 | **XAMPP** | 8.2+ | https://www.apachefriends.org/fr/index.html |
-| **Git** | toute version | https://git-scm.com/downloads |
 | Navigateur web | Chrome / Firefox / Edge | — |
 
 > XAMPP inclut Apache, PHP 8.2 et MariaDB. Aucun autre logiciel n'est nécessaire.
@@ -31,7 +30,7 @@ Vous devez obtenir la structure suivante dans `C:\xampp\htdocs\RMS-Ticket-main\`
 
 ```
 RMS-Ticket-main/
-├── bdd.sql
+├── rms_ticket.sql
 ├── index.php
 ├── AdminPanel/
 ├── CreateTickets/
@@ -69,10 +68,12 @@ Dans votre navigateur, allez à :
 
 ### 3c. Importer le fichier SQL
 
+> **Important :** Le fichier `rms_ticket.sql` contient la base de données complète avec les comptes utilisateurs déjà créés.
+
 1. Cliquez sur la base `rms_ticket` dans la colonne de gauche
 2. Cliquez sur l'onglet **Importer** (en haut)
 3. Cliquez sur **Choisir un fichier**
-4. Sélectionnez le fichier : `C:\xampp\htdocs\RMS-Ticket-main\bdd.sql`
+4. Sélectionnez le fichier : `C:\xampp\htdocs\RMS-Ticket-main\rms_ticket.sql`
 5. Laissez tous les paramètres par défaut
 6. Cliquez sur **Importer** (bouton en bas de page)
 
@@ -123,13 +124,15 @@ Vous serez redirigé automatiquement vers la page de connexion.
 
 ## Étape 6 — Se connecter
 
-Un compte administrateur est créé automatiquement à l'import du fichier SQL :
+Le fichier `rms_ticket.sql` contient plusieurs comptes déjà créés. Utilisez le compte jurys pour évaluer l'application :
 
 | Champ | Valeur |
 |---|---|
-| **Email** | ` jurys.sio@gmail.com` |
+| **Email** | `jurys.sio@gmail.com` |
 | **Mot de passe** | `Azerty123` |
 | **Niveau d'accès** | Administrateur |
+
+> Ce compte a accès à toutes les fonctionnalités, y compris le panneau d'administration.
 
 ---
 
@@ -151,7 +154,7 @@ Un compte administrateur est créé automatiquement à l'import du fichier SQL :
 |---|---|
 | Page blanche ou erreur 500 | Vérifiez que Apache et MySQL sont bien démarrés dans XAMPP |
 | "Erreur de connexion à la base de données" | Vérifiez que la base `rms_ticket` existe dans phpMyAdmin |
-| "Table not found" | Relancez l'import du fichier `bdd.sql` |
+| "Table not found" | Relancez l'import du fichier `rms_ticket.sql` |
 | Port 80 déjà utilisé | Dans XAMPP → Config Apache → changez le port en 8080, puis accédez via `http://localhost:8080/RMS-Ticket-main/` |
 | Accès refusé phpMyAdmin | Identifiants par défaut XAMPP : login `root`, mot de passe vide |
 
@@ -162,7 +165,7 @@ Un compte administrateur est créé automatiquement à l'import du fichier SQL :
 ```
 RMS-Ticket-main/
 │
-├── bdd.sql                     → Script SQL de création de la base de données
+├── rms_ticket.sql              → Base de données complète avec comptes pré-créés (jurys sio + autres utilisateurs)
 ├── index.php                   → Redirection vers la page d'accueil
 │
 ├── Database/
