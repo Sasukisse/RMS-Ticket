@@ -578,8 +578,8 @@ function users_update(): void {
     
     // Vérifier les permissions pour modifier les droits
     $current_user = current_user();
-    if ($droit != $_POST['original_droit'] && $current_user['droit'] < 3) {
-        exit('Seuls les super administrateurs peuvent modifier les droits');
+    if ($droit != $_POST['original_droit'] && $current_user['droit'] < 2) {
+        exit('Seuls les administrateurs peuvent modifier les droits');
     }
     
     $stmt = $conn->prepare('UPDATE users SET username = ?, nom = ?, prenom = ?, email = ?, numero_telephone = ?, droit = ? WHERE id = ?');
