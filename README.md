@@ -81,7 +81,7 @@ Dans votre navigateur, allez à :
 
 ### 3d. Vérifier les tables créées
 
-Vous devez voir **10 tables** dans la base `rms_ticket` :
+Vous devez voir **11 tables** dans la base `rms_ticket` :
 
 - `admin_logs`
 - `permissions`
@@ -89,6 +89,7 @@ Vous devez voir **10 tables** dans la base `rms_ticket` :
 - `role_permissions`
 - `tickets`
 - `ticket_comments`
+- `ticket_message_reads`
 - `ticket_responses`
 - `users`
 - `user_roles`
@@ -96,19 +97,19 @@ Vous devez voir **10 tables** dans la base `rms_ticket` :
 
 ---
 
-## Étape 4 — Vérifier la configuration de connexion
+## Étape 4 — Adapter la configuration de connexion *(optionnel — serveur uniquement)*
 
-Ouvrez le fichier `C:\xampp\htdocs\RMS-Ticket-main\Database\config.php` :
+> **Cette étape ne concerne pas une installation XAMPP locale standard.** Les valeurs par défaut sont déjà correctes dans ce cas. Elle s'adresse uniquement aux personnes qui déploient l'application sur un **serveur distant** (hébergement mutualisé, VPS, etc.) avec des identifiants MySQL personnalisés.
+
+Ouvrez le fichier `Database/config.php` et adaptez les valeurs à votre environnement serveur :
 
 ```php
-const DB_HOST    = '127.0.0.1';
-const DB_NAME    = 'rms_ticket';
-const DB_USER    = 'root';
-const DB_PASS    = '';          // Vide par défaut sur XAMPP
+const DB_HOST    = '127.0.0.1';   // Adresse du serveur MySQL
+const DB_NAME    = 'rms_ticket';  // Nom de la base de données
+const DB_USER    = 'root';        // Utilisateur MySQL
+const DB_PASS    = '';            // Mot de passe MySQL
 const DB_CHARSET = 'utf8mb4';
 ```
-
-> Ces valeurs sont correctes pour une installation XAMPP standard. **Ne pas modifier** sauf si vous avez un mot de passe MySQL personnalisé.
 
 ---
 
