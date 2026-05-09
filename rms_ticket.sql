@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1
--- Généré le : mar. 05 mai 2026 à 09:34
+-- Généré le : sam. 09 mai 2026 à 11:51
 -- Version du serveur : 10.4.32-MariaDB
 -- Version de PHP : 8.2.12
 
@@ -38,6 +38,17 @@ CREATE TABLE `admin_logs` (
   `user_agent` varchar(500) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Déchargement des données de la table `admin_logs`
+--
+
+INSERT INTO `admin_logs` (`id`, `user_id`, `action`, `entity_type`, `entity_id`, `details`, `ip_address`, `user_agent`, `created_at`) VALUES
+(19, 7, 'logout', '', NULL, '\"Déconnexion du panneau admin\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-05-09 09:28:50'),
+(20, 9, 'ticket_assign', '', NULL, '\"Ticket ID: 7 assigné à user_id: 9\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-05-09 09:42:18'),
+(21, 9, 'ticket_priority_update', '', NULL, '\"Ticket ID: 7, Nouvelle priorité: high\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-05-09 09:43:17'),
+(22, 9, 'logout', '', NULL, '\"Déconnexion du panneau admin\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-05-09 09:45:33'),
+(23, 7, 'logout', '', NULL, '\"Déconnexion du panneau admin\"', '::1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36', '2026-05-09 09:47:01');
 
 -- --------------------------------------------------------
 
@@ -172,6 +183,14 @@ CREATE TABLE `tickets` (
   `resolution_notes` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Déchargement des données de la table `tickets`
+--
+
+INSERT INTO `tickets` (`id`, `user_id`, `assigned_to`, `title`, `description`, `category`, `type`, `priority`, `status`, `created_at`, `updated_at`, `closed_at`, `resolution_notes`) VALUES
+(6, 11, NULL, 'Souris HS', 'Bonjour, \r\nMa souris d\'ordinateur ne fonctionne plus.\r\nSerait-il possible d\'en avoir une nouvelle ?\r\nMerci', 'materiel', 'demande', 'medium', 'open', '2026-05-09 09:31:30', '2026-05-09 09:31:30', NULL, NULL),
+(7, 10, 9, 'Problème de démarrage Teams', 'Bonjour,\r\nLe logiciel Teams ne veut plus démarrer sur mon pc.\r\nPouvez-vous m\'aider à régler ce souci ?\r\nMerci à vous', 'logiciel', 'incident', 'high', 'in_progress', '2026-05-09 09:34:55', '2026-05-09 09:44:52', NULL, NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -200,16 +219,6 @@ CREATE TABLE `ticket_message_reads` (
   `last_read_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Déchargement des données de la table `ticket_message_reads`
---
-
-INSERT INTO `ticket_message_reads` (`id`, `ticket_id`, `user_id`, `last_read_at`) VALUES
-(1, 1, 1, '2026-02-17 09:15:36'),
-(263, 2, 2, '2026-02-19 10:43:32'),
-(266, 3, 2, '2026-03-12 14:07:00'),
-(273, 4, 2, '2026-04-09 09:03:17');
-
 -- --------------------------------------------------------
 
 --
@@ -224,6 +233,13 @@ CREATE TABLE `ticket_responses` (
   `is_admin_response` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Déchargement des données de la table `ticket_responses`
+--
+
+INSERT INTO `ticket_responses` (`id`, `ticket_id`, `user_id`, `response_text`, `is_admin_response`, `created_at`) VALUES
+(15, 7, 9, 'Bonjour Sally Carrera, avez-vous déjà redémarré votre ordinateur ?', 1, '2026-05-09 09:44:52');
 
 -- --------------------------------------------------------
 
@@ -389,7 +405,7 @@ ALTER TABLE `user_sessions`
 -- AUTO_INCREMENT pour la table `admin_logs`
 --
 ALTER TABLE `admin_logs`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT pour la table `permissions`
@@ -407,7 +423,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT pour la table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT pour la table `ticket_comments`
@@ -419,13 +435,13 @@ ALTER TABLE `ticket_comments`
 -- AUTO_INCREMENT pour la table `ticket_message_reads`
 --
 ALTER TABLE `ticket_message_reads`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=295;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=317;
 
 --
 -- AUTO_INCREMENT pour la table `ticket_responses`
 --
 ALTER TABLE `ticket_responses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT pour la table `users`
