@@ -135,6 +135,8 @@ Le fichier `rms_ticket.sql` contient plusieurs comptes déjà créés. Utilisez 
 
 > Ce compte a accès à toutes les fonctionnalités, y compris le panneau d'administration.
 
+> **Mot de passe des autres comptes :** Tous les autres comptes présents dans la base de données ont le mot de passe par défaut `azerty`. Ces mots de passe peuvent être modifiés directement depuis le compte `jurys.sio@gmail.com` (rôle Administrateur) via le panneau d'administration.
+
 ---
 
 ## Récapitulatif des URLs de l'application
