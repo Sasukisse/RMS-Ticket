@@ -2,8 +2,8 @@
 session_start();
 require_once '../Database/config.php';
 
-// Vérifier si l'utilisateur est connecté et a les droits admin
-if (!isset($_SESSION['user_id']) || $_SESSION['droit'] < 2) {
+// Vérifier si l'utilisateur est connecté et a au moins les droits technicien
+if (!isset($_SESSION['user_id']) || $_SESSION['droit'] < 1) {
     header('Location: ../Login/login.php');
     exit();
 }
@@ -122,6 +122,14 @@ function require_super_admin(): void {
     }
 }
 
+function require_technician(): void {
+    $user = current_user();
+    if (!$user || $user['droit'] < 1) {
+        http_response_code(403);
+        exit('Accès refusé - Droits technicien requis');
+    }
+}
+
 // Fonctions de logging
 function log_admin_action($action, $details = '', $user_id = null) {
     $conn = getConnection();
@@ -154,7 +162,7 @@ $action = $_GET['action'] ?? 'dashboard';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 verify_csrf();
 
-require_admin();
+require_technician();
 
 switch ($action) {
     case 'dashboard': 
@@ -201,6 +209,7 @@ switch ($action) {
         break;
         
     case 'users':
+        require_admin();
         if ($method === 'POST') {
             $op = $_POST['op'] ?? '';
             if ($op === 'create') users_create();
@@ -230,6 +239,7 @@ switch ($action) {
         break;
         
     case 'logs':
+        require_admin();
         $filters = [
             'action' => $_GET['action_filter'] ?? '',
             'user' => $_GET['user'] ?? '',
@@ -776,17 +786,21 @@ function page_layout(string $title, string $content, array $opts = []): void {
                 <a href="?action=tickets" class="nav-link <?= $current_action === 'tickets' ? 'active' : '' ?>">
                     <i class="fas fa-ticket-alt"></i> Tickets
                 </a>
+                <?php if ($current_user['droit'] >= 2): ?>
                 <a href="?action=users" class="nav-link <?= $current_action === 'users' ? 'active' : '' ?>">
                     <i class="fas fa-users"></i> Comptes
                 </a>
+                <?php endif; ?>
                 <?php if ($current_user['droit'] >= 2): ?>
                 <a href="?action=permissions" class="nav-link <?= $current_action === 'permissions' ? 'active' : '' ?>">
                     <i class="fas fa-shield-alt"></i> Permissions
                 </a>
                 <?php endif; ?>
+                <?php if ($current_user['droit'] >= 2): ?>
                 <a href="?action=logs" class="nav-link <?= $current_action === 'logs' ? 'active' : '' ?>">
                     <i class="fas fa-history"></i> Logs
                 </a>
+                <?php endif; ?>
                 
                 <div class="nav-user">
                     <div class="user-info">
