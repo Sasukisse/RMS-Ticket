@@ -66,8 +66,8 @@ body {
     align-items: center;
     justify-content: space-between;
     height: 70px;
-    flex-wrap: wrap;
     gap: 1rem;
+    overflow-x: auto;
 }
 
 .nav-brand {
@@ -103,7 +103,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
-    flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .nav-link {
